@@ -136,5 +136,43 @@ def test_investigation_summary_has_no_anomaly_at_threshold_101():
         == "No provider exceeded the configured anomaly threshold."
     )
 
+    
+def test_health_endpoint_returns_request_id():
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    assert response.headers.get("X-Request-ID")
+
+    request_id = response.headers["X-Request-ID"]
+    assert len(request_id) == 36
+
+
+def test_request_tracking_preserves_valid_request_id():
+    request_id = "test-request-123"
+
+    response = client.get(
+        "/health",
+        headers={"X-Request-ID": request_id},
+    )
+
+    assert response.status_code == 200
+    assert response.headers["X-Request-ID"] == request_id
+
+
+def test_request_tracking_replaces_invalid_request_id():
+    invalid_id = "invalid request id!"
+
+    response = client.get(
+        "/health",
+        headers={"X-Request-ID": invalid_id},
+    )
+
+    assert response.status_code == 200
+
+    returned_id = response.headers["X-Request-ID"]
+    assert returned_id != invalid_id
+    assert len(returned_id) == 36
+
+
 
 
