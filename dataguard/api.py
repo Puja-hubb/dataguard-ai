@@ -4,7 +4,7 @@ import time
 import uuid
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from .evidence import build_demo_evidence, confirm_root_cause
 from .logging_config import configure_logging
@@ -26,8 +26,8 @@ CATALOG = build_demo_evidence("raw_orders", "amount", 93.3)
 
 @app.middleware("http")
 async def request_tracking_middleware(request: Request, call_next):
-    # Accept only a simple, safe request ID from the caller.
     supplied_id = request.headers.get("X-Request-ID", "")
+
     if (
         supplied_id
         and len(supplied_id) <= 100
@@ -69,7 +69,40 @@ async def request_tracking_middleware(request: Request, call_next):
 class ConfirmationRequest(BaseModel):
     asset: str = Field(min_length=1, max_length=200)
     field: str = Field(min_length=1, max_length=200)
-    evidence_ids: list[str] = Field(min_length=1)
+    evidence_ids: list[str] = Field(min_length=1, max_length=20)
+
+    @field_validator("asset", "field")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        value = value.strip()
+
+        if not value:
+            raise ValueError("Must not contain only whitespace.")
+
+        return value
+
+    @field_validator("evidence_ids")
+    @classmethod
+    def validate_evidence_ids(cls, values: list[str]) -> list[str]:
+        cleaned = []
+
+        for value in values:
+            value = value.strip()
+
+            if not value:
+                raise ValueError("Evidence IDs must not be empty.")
+
+            if len(value) > 200:
+                raise ValueError(
+                    "Evidence IDs must not exceed 200 characters."
+                )
+
+            cleaned.append(value)
+
+        if len(cleaned) != len(set(cleaned)):
+            raise ValueError("Evidence IDs must not contain duplicates.")
+
+        return cleaned
 
 
 @app.get("/health")
@@ -117,7 +150,9 @@ def demo_data_quality():
 
 
 @app.get("/quality/providers")
-def provider_quality(anomaly_threshold: float = Query(default=10.0, gt=1)):
+def provider_quality(
+    anomaly_threshold: float = Query(default=10.0, gt=1)
+):
     try:
         return profile_provider_amounts(
             anomaly_threshold=anomaly_threshold

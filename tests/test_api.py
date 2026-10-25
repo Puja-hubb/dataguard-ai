@@ -219,6 +219,88 @@ def test_quality_endpoint_does_not_expose_internal_error(monkeypatch):
         "Data quality profiling failed. Please try again later."
     )
 
+def test_confirm_rejects_whitespace_only_asset():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "   ",
+            "field": "amount",
+            "evidence_ids": ["lineage-raw_orders-amount"],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_rejects_whitespace_only_field():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "   ",
+            "evidence_ids": ["lineage-raw_orders-amount"],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_rejects_empty_evidence_id():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "amount",
+            "evidence_ids": ["   "],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_rejects_duplicate_evidence_ids():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "amount",
+            "evidence_ids": [
+                "lineage-raw_orders-amount",
+                "lineage-raw_orders-amount",
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_rejects_too_many_evidence_ids():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "amount",
+            "evidence_ids": [
+                f"evidence-{number}" for number in range(21)
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+def test_confirm_rejects_overlong_evidence_id():
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "amount",
+            "evidence_ids": ["x" * 201],
+        },
+    )
+
+    assert response.status_code == 422
+
 
 
 
