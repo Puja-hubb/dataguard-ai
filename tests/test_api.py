@@ -174,5 +174,51 @@ def test_request_tracking_replaces_invalid_request_id():
     assert len(returned_id) == 36
 
 
+def test_incident_endpoint_does_not_expose_internal_error(monkeypatch):
+    from dataguard import api
+
+    secret_message = "database_password=super_secret"
+
+    def failing_revenue_summary():
+        raise RuntimeError(secret_message)
+
+    monkeypatch.setattr(
+        api,
+        "revenue_summary",
+        failing_revenue_summary,
+    )
+
+    response = client.get("/incident/demo")
+
+    assert response.status_code == 503
+    assert secret_message not in response.text
+    assert response.json()["detail"] == (
+        "Warehouse unavailable. Please try again later."
+    )
+
+
+def test_quality_endpoint_does_not_expose_internal_error(monkeypatch):
+    from dataguard import api
+
+    secret_message = "internal_database_path=C:\\private\\data"
+
+    def failing_profile():
+        raise RuntimeError(secret_message)
+
+    monkeypatch.setattr(
+        api,
+        "profile_database_orders",
+        failing_profile,
+    )
+
+    response = client.get("/quality/demo")
+
+    assert response.status_code == 503
+    assert secret_message not in response.text
+    assert response.json()["detail"] == (
+        "Data quality profiling failed. Please try again later."
+    )
+
+
 
 

@@ -82,11 +82,11 @@ def health():
 def demo_incident():
     try:
         summary = revenue_summary()
-    except Exception as exc:
+    except Exception:
         logger.exception("Demo incident failed: warehouse unavailable")
         raise HTTPException(
             status_code=503,
-            detail=f"Warehouse unavailable: {exc}",
+            detail="Warehouse unavailable. Please try again later.",
         )
 
     ratio = summary["revenue"] / BASELINE_REVENUE
@@ -108,11 +108,11 @@ def demo_incident():
 def demo_data_quality():
     try:
         return profile_database_orders()
-    except Exception as exc:
+    except Exception:
         logger.exception("Data quality profiling failed")
         raise HTTPException(
             status_code=503,
-            detail=f"Data quality profiling failed: {exc}",
+            detail="Data quality profiling failed. Please try again later.",
         )
 
 
@@ -122,13 +122,17 @@ def provider_quality(anomaly_threshold: float = Query(default=10.0, gt=1)):
         return profile_provider_amounts(
             anomaly_threshold=anomaly_threshold
         )
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    except Exception as exc:
+    except ValueError:
+        logger.exception("Provider profiling rejected invalid input")
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid provider profiling parameters.",
+        )
+    except Exception:
         logger.exception("Provider profiling failed")
         raise HTTPException(
             status_code=503,
-            detail=f"Provider profiling failed: {exc}",
+            detail="Provider profiling failed. Please try again later.",
         )
 
 
@@ -138,11 +142,11 @@ def investigate_demo():
 
     try:
         summary = revenue_summary()
-    except Exception as exc:
+    except Exception:
         logger.exception("Demo investigation failed: warehouse unavailable")
         raise HTTPException(
             status_code=503,
-            detail=f"Warehouse unavailable: {exc}",
+            detail="Warehouse unavailable. Please try again later.",
         )
 
     ratio = summary["revenue"] / BASELINE_REVENUE
@@ -173,11 +177,13 @@ def investigate_demo():
 def confirm(request: ConfirmationRequest):
     try:
         summary = revenue_summary()
-    except Exception as exc:
-        logger.exception("Root-cause confirmation failed: warehouse unavailable")
+    except Exception:
+        logger.exception(
+            "Root-cause confirmation failed: warehouse unavailable"
+        )
         raise HTTPException(
             status_code=503,
-            detail=f"Warehouse unavailable: {exc}",
+            detail="Warehouse unavailable. Please try again later.",
         )
 
     ratio = summary["revenue"] / BASELINE_REVENUE
@@ -267,9 +273,9 @@ def investigation_summary(
             ),
         }
 
-    except Exception as exc:
+    except Exception:
         logger.exception("Investigation summary failed")
         raise HTTPException(
             status_code=503,
-            detail=f"Investigation summary failed: {exc}",
+            detail="Investigation summary failed. Please try again later.",
         )
