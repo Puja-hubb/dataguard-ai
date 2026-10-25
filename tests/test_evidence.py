@@ -134,3 +134,39 @@ def test_non_finite_quantitative_measurement_is_rejected():
     assert result["accepted"] is False
 
 
+def test_unsupported_evidence_type_is_rejected():
+    catalog = [
+        Evidence(
+            evidence_id="lineage-1",
+            evidence_type="lineage",
+            asset="raw_orders",
+            field="amount",
+            statement="Field contributes to revenue.",
+        ),
+        Evidence(
+            evidence_id="profile-1",
+            evidence_type="quantitative",
+            asset="raw_orders",
+            field="amount",
+            statement="Revenue anomaly detected.",
+            measured_value=93.3,
+        ),
+        Evidence(
+            evidence_id="custom-1",
+            evidence_type="unverified",
+            asset="raw_orders",
+            field="amount",
+            statement="Unverified evidence type.",
+        ),
+    ]
+
+    result = confirm_root_cause(
+        "raw_orders",
+        "amount",
+        ["lineage-1", "profile-1", "custom-1"],
+        catalog,
+    )
+
+    assert result["accepted"] is False
+
+
