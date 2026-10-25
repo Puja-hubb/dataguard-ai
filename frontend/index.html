@@ -509,11 +509,15 @@
                     </div>
                 </div>
 
-                <button class="primary-button" id="investigate-button" type="button">
-                    Run investigation →
-                </button>
+               <button class="primary-button" id="investigate-button" type="button">
+    Run investigation
+</button>
 
-                <div id="message" role="status" aria-live="polite"></div>
+<button class="primary-button" id="export-report-button" type="button" disabled>
+    Export investigation report
+</button>
+
+<div id="message" role="status" aria-live="polite"></div>
             </article>
 
             <article class="panel">
@@ -596,6 +600,9 @@
 <script>
     const message = document.getElementById("message");
     const investigateButton = document.getElementById("investigate-button");
+    const exportReportButton = document.getElementById("export-report-button");
+
+let latestInvestigationReport = null;
 
     function showMessage(text) {
         message.textContent = text;
@@ -856,6 +863,18 @@
             const evidenceCount = Array.isArray(result.evidence)
                 ? result.evidence.length
                 : 0;
+    latestInvestigationReport = {
+    report_title: "DataGuard AI Investigation Report",
+    generated_at: new Date().toISOString(),
+    project: "DataGuard AI",
+    asset: result.asset,
+    field: result.field,
+    evidence_count: evidenceCount,
+    evidence: result.evidence ?? [],
+    note: "This report records investigation results. It does not independently confirm the root cause."
+};
+
+exportReportButton.disabled = false;
 
             document.getElementById("evidence-detail").textContent =
                 `${evidenceCount} items`;
@@ -874,7 +893,31 @@
             investigateButton.textContent = "Run investigation →";
         }
     });
+exportReportButton.addEventListener("click", () => {
+    if (!latestInvestigationReport) {
+        showMessage("Run an investigation before exporting a report.");
+        return;
+    }
 
+    const reportBlob = new Blob(
+        [JSON.stringify(latestInvestigationReport, null, 2)],
+        { type: "application/json" }
+    );
+
+    const downloadUrl = URL.createObjectURL(reportBlob);
+    const downloadLink = document.createElement("a");
+
+    downloadLink.href = downloadUrl;
+    downloadLink.download = "dataguard-investigation-report.json";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+
+    URL.revokeObjectURL(downloadUrl);
+
+    showMessage("Investigation report downloaded successfully.");
+});
     loadDashboard();
 </script>
 </body>
