@@ -1,10 +1,15 @@
+import logging
 
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from .evidence import build_demo_evidence, confirm_root_cause
+from .logging_config import configure_logging
 from .quality import profile_database_orders, profile_provider_amounts
 from .warehouse import revenue_summary
+
+configure_logging()
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="DataGuard AI",
@@ -24,8 +29,8 @@ class ConfirmationRequest(BaseModel):
 
 @app.get("/health")
 def health():
+    logger.info("Health check requested")
     return {"status": "ok"}
-
 
 @app.get("/incident/demo")
 def demo_incident():
@@ -81,11 +86,15 @@ def provider_quality(anomaly_threshold: float = Query(default=10.0, gt=1)):
 
 
 
+
 @app.post("/investigate/demo")
 def investigate_demo():
+    logger.info("Demo investigation requested")
+
     try:
         summary = revenue_summary()
     except Exception as exc:
+        logger.exception("Demo investigation failed: warehouse unavailable")
         raise HTTPException(
             status_code=503,
             detail=f"Warehouse unavailable: {exc}",
@@ -93,6 +102,12 @@ def investigate_demo():
 
     ratio = summary["revenue"] / BASELINE_REVENUE
     catalog = build_demo_evidence("raw_orders", "amount", ratio)
+
+    logger.info(
+        "Demo investigation completed: asset=raw_orders, "
+        "field=amount, evidence_count=%s",
+        len(catalog),
+    )
 
     return {
         "asset": "raw_orders",
@@ -107,6 +122,7 @@ def investigate_demo():
             "not fetched from DataHub."
         ),
     }
+
 
 
 @app.post("/confirm-root-cause")
