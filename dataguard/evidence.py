@@ -1,4 +1,6 @@
+
 from dataclasses import dataclass, asdict
+from math import isfinite
 from typing import Iterable
 
 
@@ -57,13 +59,22 @@ def confirm_root_cause(
         }
 
     quantitative = [
-        item for item in relevant
-        if item.evidence_type == "quantitative" and item.measured_value is not None
+        item
+        for item in relevant
+        if item.evidence_type == "quantitative"
+        and item.measured_value is not None
+        and isfinite(item.measured_value)
     ]
-    if not quantitative or max(abs(item.measured_value) for item in quantitative) < 2:
+
+    if not quantitative or max(
+        abs(item.measured_value) for item in quantitative
+    ) < 2:
         return {
             "accepted": False,
-            "reason": "Quantitative evidence does not meet the demo anomaly threshold.",
+            "reason": (
+                "Quantitative evidence is missing, non-finite, "
+                "or does not meet the demo anomaly threshold."
+            ),
         }
 
     return {

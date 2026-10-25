@@ -104,3 +104,33 @@ def test_evidence_for_wrong_asset_is_rejected():
     )
     assert result["accepted"] is False
 
+    
+def test_non_finite_quantitative_measurement_is_rejected():
+    catalog = [
+        Evidence(
+            evidence_id="lineage-1",
+            evidence_type="lineage",
+            asset="raw_orders",
+            field="amount",
+            statement="Field contributes to revenue.",
+        ),
+        Evidence(
+            evidence_id="profile-1",
+            evidence_type="quantitative",
+            asset="raw_orders",
+            field="amount",
+            statement="Measurement is not finite.",
+            measured_value=float("nan"),
+        ),
+    ]
+
+    result = confirm_root_cause(
+        "raw_orders",
+        "amount",
+        ["lineage-1", "profile-1"],
+        catalog,
+    )
+
+    assert result["accepted"] is False
+
+
