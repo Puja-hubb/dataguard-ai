@@ -1,6 +1,9 @@
-import logging
 
-from fastapi import FastAPI, HTTPException, Query
+import logging
+import time
+import uuid
+
+from fastapi import FastAPI, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 
 from .evidence import build_demo_evidence, confirm_root_cause
@@ -21,6 +24,48 @@ BASELINE_REVENUE = 5500.0
 CATALOG = build_demo_evidence("raw_orders", "amount", 93.3)
 
 
+@app.middleware("http")
+async def request_tracking_middleware(request: Request, call_next):
+    # Accept only a simple, safe request ID from the caller.
+    supplied_id = request.headers.get("X-Request-ID", "")
+    if (
+        supplied_id
+        and len(supplied_id) <= 100
+        and all(c.isalnum() or c in "-_." for c in supplied_id)
+    ):
+        request_id = supplied_id
+    else:
+        request_id = str(uuid.uuid4())
+
+    request.state.request_id = request_id
+    start_time = time.perf_counter()
+
+    logger.info(
+        "Request started | id=%s | method=%s | path=%s",
+        request_id,
+        request.method,
+        request.url.path,
+    )
+
+    try:
+        response = await call_next(request)
+    except Exception:
+        logger.exception("Request failed | id=%s", request_id)
+        raise
+
+    duration_ms = (time.perf_counter() - start_time) * 1000
+    response.headers["X-Request-ID"] = request_id
+
+    logger.info(
+        "Request completed | id=%s | status=%s | duration_ms=%.2f",
+        request_id,
+        response.status_code,
+        duration_ms,
+    )
+
+    return response
+
+
 class ConfirmationRequest(BaseModel):
     asset: str = Field(min_length=1, max_length=200)
     field: str = Field(min_length=1, max_length=200)
@@ -32,11 +77,13 @@ def health():
     logger.info("Health check requested")
     return {"status": "ok"}
 
+
 @app.get("/incident/demo")
 def demo_incident():
     try:
         summary = revenue_summary()
     except Exception as exc:
+        logger.exception("Demo incident failed: warehouse unavailable")
         raise HTTPException(
             status_code=503,
             detail=f"Warehouse unavailable: {exc}",
@@ -62,11 +109,11 @@ def demo_data_quality():
     try:
         return profile_database_orders()
     except Exception as exc:
+        logger.exception("Data quality profiling failed")
         raise HTTPException(
             status_code=503,
             detail=f"Data quality profiling failed: {exc}",
         )
-
 
 
 @app.get("/quality/providers")
@@ -78,13 +125,11 @@ def provider_quality(anomaly_threshold: float = Query(default=10.0, gt=1)):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception as exc:
+        logger.exception("Provider profiling failed")
         raise HTTPException(
             status_code=503,
             detail=f"Provider profiling failed: {exc}",
         )
-
-
-
 
 
 @app.post("/investigate/demo")
@@ -124,12 +169,12 @@ def investigate_demo():
     }
 
 
-
 @app.post("/confirm-root-cause")
 def confirm(request: ConfirmationRequest):
     try:
         summary = revenue_summary()
     except Exception as exc:
+        logger.exception("Root-cause confirmation failed: warehouse unavailable")
         raise HTTPException(
             status_code=503,
             detail=f"Warehouse unavailable: {exc}",
@@ -151,7 +196,6 @@ def confirm(request: ConfirmationRequest):
     return result
 
 
-
 @app.get("/investigation/summary")
 def investigation_summary(
     anomaly_threshold: float = Query(default=10.0, gt=1)
@@ -162,7 +206,6 @@ def investigation_summary(
             anomaly_threshold=anomaly_threshold
         )
 
-        
         anomalies = provider_report["anomalies"]
 
         if anomalies:
@@ -225,9 +268,8 @@ def investigation_summary(
         }
 
     except Exception as exc:
+        logger.exception("Investigation summary failed")
         raise HTTPException(
             status_code=503,
             detail=f"Investigation summary failed: {exc}",
         )
-
-
