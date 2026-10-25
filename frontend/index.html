@@ -1,0 +1,881 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1220">
+    <title>DataGuard AI | Data Reliability</title>
+
+    <style>
+        :root {
+            color-scheme: dark;
+            --bg: #0b1220;
+            --panel: #121c2d;
+            --border: #26354a;
+            --text: #edf3fc;
+            --muted: #9aaac0;
+            --blue: #71a7ff;
+            --green: #49d7a1;
+            --amber: #ffca73;
+            --red: #ff8585;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        button { font: inherit; }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 235px minmax(0, 1fr);
+            min-height: 100vh;
+        }
+
+        aside {
+            padding: 28px 18px;
+            border-right: 1px solid var(--border);
+            background: #0e1726;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-size: 19px;
+            font-weight: 750;
+            letter-spacing: -0.5px;
+        }
+
+        .brand-icon {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #203a61;
+            color: var(--blue);
+            font-size: 21px;
+        }
+
+        .eyebrow {
+            margin: 35px 10px 12px;
+            color: #7f91aa;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+
+        .nav-item {
+            display: block;
+            margin: 5px 0;
+            padding: 11px 12px;
+            border-radius: 9px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .nav-item.active {
+            background: #1b2d47;
+            color: #c4dcff;
+        }
+
+        .sidebar-note {
+            margin-top: 45px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        main {
+            width: 100%;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: clamp(25px, 3vw, 34px);
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            margin: 7px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .demo-label {
+            padding: 7px 11px;
+            border: 1px solid #745a2d;
+            border-radius: 20px;
+            background: #342918;
+            color: var(--amber);
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin: 28px 0 15px;
+        }
+
+        .section-heading h2,
+        .panel h3 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .muted { color: var(--muted); }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .card, .panel {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--panel);
+        }
+
+        .card { padding: 19px; }
+
+        .card-label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .card-value {
+            margin: 14px 0 7px;
+            font-size: 29px;
+            font-weight: 750;
+            letter-spacing: -1px;
+        }
+
+        .card-foot {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 6px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .status-dot.warning { background: var(--amber); }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1.5fr) minmax(270px, 1fr);
+            gap: 16px;
+        }
+
+        .panel { padding: 21px; }
+
+        .panel-description {
+            margin: 6px 0 20px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .incident-status {
+            display: inline-block;
+            margin: 12px 0;
+            padding: 5px 9px;
+            border-radius: 7px;
+            background: #422c1d;
+            color: var(--amber);
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .incident-title {
+            margin: 4px 0 9px;
+            font-size: 21px;
+        }
+
+        .incident-copy {
+            max-width: 620px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .incident-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 22px;
+        }
+
+        .metric {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .metric span {
+            display: block;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 5px;
+            font-size: 20px;
+        }
+
+        .primary-button {
+            margin-top: 20px;
+            padding: 11px 15px;
+            border: 0;
+            border-radius: 9px;
+            background: #3679e6;
+            color: white;
+            font-weight: 650;
+            cursor: pointer;
+        }
+
+        .primary-button:hover { background: #4b8bf4; }
+
+        .primary-button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .quality-list {
+            display: grid;
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .quality-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-size: 13px;
+        }
+
+        .quality-value {
+            color: var(--green);
+            font-weight: 700;
+        }
+
+        .quality-value.warning { color: var(--amber); }
+
+        .bar {
+            height: 6px;
+            margin-top: 9px;
+            overflow: hidden;
+            border-radius: 10px;
+            background: #27364a;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: var(--green);
+            transition: width 0.3s ease;
+        }
+
+        .bar-fill.warning { background: var(--amber); }
+
+        .table-panel { margin-top: 16px; }
+        .table-wrap { overflow-x: auto; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        th {
+            padding: 12px 10px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 650;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 15px 10px;
+            border-top: 1px solid var(--border);
+        }
+
+        .provider { font-weight: 650; }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #422c1d;
+            color: var(--amber);
+            font-size: 11px;
+            font-weight: 650;
+        }
+
+        .badge.normal {
+            background: #16372f;
+            color: var(--green);
+        }
+
+        #message {
+            display: none;
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        footer {
+            margin-top: 26px;
+            color: #7f91aa;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1050px) {
+            .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 680px) {
+            .layout { grid-template-columns: 1fr; }
+
+            aside {
+                padding: 16px;
+                border-right: 0;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .eyebrow,
+            .sidebar-note,
+            .nav-item:not(.active) {
+                display: none;
+            }
+
+            .nav-item.active {
+                display: inline-block;
+                margin-top: 12px;
+            }
+
+            main { padding: 20px 15px; }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .cards { gap: 10px; }
+            .card { padding: 14px; }
+            .card-value { font-size: 24px; }
+            .incident-metrics { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+    <aside>
+        <div class="brand">
+            <div class="brand-icon">⬡</div>
+            <span>DataGuard AI</span>
+        </div>
+
+        <p class="eyebrow">Workspace</p>
+        <div class="nav-item active">▦ &nbsp; Overview</div>
+        <div class="nav-item">◇ &nbsp; Incidents</div>
+        <div class="nav-item">◉ &nbsp; Data quality</div>
+        <div class="nav-item">⌘ &nbsp; Investigations</div>
+
+        <div class="sidebar-note">
+            <strong style="color: var(--text)">Learning prototype</strong>
+            <p>Investigate synthetic data anomalies using evidence-based validation.</p>
+        </div>
+    </aside>
+
+    <main>
+        <header class="topbar">
+            <div>
+                <h1>Data reliability overview</h1>
+                <p class="subtitle">
+                    Monitor data quality and investigate unusual revenue patterns.
+                </p>
+            </div>
+            <span class="demo-label">● &nbsp; DEMO ENVIRONMENT</span>
+        </header>
+
+        <section class="cards">
+            <article class="card">
+                <div class="card-label">Active incidents</div>
+                <div class="card-value" id="active-incidents">1</div>
+                <div class="card-foot">
+                    <span class="status-dot warning"></span>Needs investigation
+                </div>
+            </article>
+
+            <article class="card">
+                <div class="card-label">Data quality</div>
+                <div class="card-value" id="quality-score">—</div>
+                <div class="card-foot">Waiting for quality report</div>
+            </article>
+
+            <article class="card">
+                <div class="card-label">Flagged providers</div>
+                <div class="card-value" id="flagged-count">—</div>
+                <div class="card-foot">Anomaly threshold applied</div>
+            </article>
+
+            <article class="card">
+                <div class="card-label">API status</div>
+                <div class="card-value" id="api-status">Unknown</div>
+                <div class="card-foot" id="api-status-note">
+                    Waiting for backend connection
+                </div>
+            </article>
+        </section>
+
+        <div class="section-heading">
+            <h2>Incident overview</h2>
+            <span class="muted" style="font-size: 12px">
+                Synthetic revenue scenario
+            </span>
+        </div>
+
+        <section class="content-grid">
+            <article class="panel">
+                <h3>Revenue anomaly detected</h3>
+                <span class="incident-status" id="incident-status">
+                    INVESTIGATION REQUIRED
+                </span>
+
+                <p class="incident-title">Provider amount mismatch</p>
+                <p class="incident-copy">
+                    One payment provider reports transaction amounts that may use a
+                    different unit. Investigate the data before making production changes.
+                </p>
+
+                <div class="incident-metrics">
+                    <div class="metric">
+                        <span>Healthy baseline revenue</span>
+                        <strong id="baseline-revenue">₹5,500</strong>
+                    </div>
+
+                    <div class="metric">
+                        <span>Current revenue</span>
+                        <strong id="current-revenue">—</strong>
+                    </div>
+
+                    <div class="metric">
+                        <span>Revenue ratio</span>
+                        <strong id="revenue-ratio">—</strong>
+                    </div>
+
+                    <div class="metric">
+                        <span>Proposed asset</span>
+                        <strong style="font-size: 15px">raw_orders.amount</strong>
+                    </div>
+                </div>
+
+                <button class="primary-button" id="investigate-button" type="button">
+                    Run investigation →
+                </button>
+
+                <div id="message" role="status" aria-live="polite"></div>
+            </article>
+
+            <article class="panel">
+                <h3>Data quality snapshot</h3>
+                <p class="panel-description">
+                    Checks reported by the backend profiler.
+                </p>
+
+                <div class="quality-list">
+                    <div>
+                        <div class="quality-row">
+                            <span>Overall quality score</span>
+                            <strong class="quality-value" id="quality-detail">—</strong>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-fill" id="quality-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="quality-row">
+                            <span>Provider anomaly detection</span>
+                            <strong class="quality-value warning" id="anomaly-detail">
+                                Pending
+                            </strong>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-fill warning" id="anomaly-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="quality-row">
+                            <span>Evidence verification</span>
+                            <strong class="quality-value" id="evidence-detail">Ready</strong>
+                        </div>
+                        <div class="bar">
+                            <div class="bar-fill" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <section class="panel table-panel">
+            <div class="section-heading" style="margin-top: 0">
+                <h3>Provider anomaly monitor</h3>
+                <span class="muted" style="font-size: 12px">
+                    Threshold: 10× baseline
+                </span>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Provider</th>
+                        <th>Average amount</th>
+                        <th>Baseline ratio</th>
+                        <th>Status</th>
+                    </tr>
+                    </thead>
+                    <tbody id="provider-rows">
+                    <tr>
+                        <td colspan="4" class="muted">
+                            Connecting to backend...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <footer>
+            DataGuard AI · Educational prototype · Uses synthetic data, not live payment systems.
+        </footer>
+    </main>
+</div>
+
+<script>
+    const message = document.getElementById("message");
+    const investigateButton = document.getElementById("investigate-button");
+
+    function showMessage(text) {
+        message.textContent = text;
+        message.style.display = "block";
+    }
+
+    function formatNumber(value) {
+        if (typeof value !== "number" || !Number.isFinite(value)) {
+            return "—";
+        }
+
+        return new Intl.NumberFormat("en-IN", {
+            maximumFractionDigits: 2
+        }).format(value);
+    }
+
+    // Calculate a dashboard score from the four checks returned by the API.
+    // This is a frontend-derived indicator, not an official backend score.
+    function setQualityScore(report) {
+        const checks = [
+            report.missing_order_ids,
+            report.missing_amounts,
+            report.duplicate_order_ids,
+            report.negative_amounts
+        ];
+
+        const validChecks = checks.filter(Array.isArray);
+
+        if (validChecks.length !== checks.length) {
+            document.getElementById("quality-score").textContent = "Unavailable";
+            document.getElementById("quality-detail").textContent = "Check report";
+            document.getElementById("quality-bar").style.width = "0%";
+            return;
+        }
+
+        const passedChecks = validChecks.filter(
+            items => items.length === 0
+        ).length;
+
+        const score = Math.round((passedChecks / checks.length) * 100);
+
+        const issueCount = validChecks.reduce(
+            (total, items) => total + items.length,
+            0
+        );
+
+        document.getElementById("quality-score").textContent = `${score}%`;
+
+        document.getElementById("quality-detail").textContent =
+            `${passedChecks}/${checks.length} checks passed`;
+
+        document.getElementById("quality-bar").style.width = `${score}%`;
+
+        const qualityFoot = document.querySelector(
+            ".cards .card:nth-child(2) .card-foot"
+        );
+
+        if (qualityFoot) {
+            qualityFoot.textContent =
+                `${report.records_checked ?? "—"} records checked · ` +
+                `${issueCount} reported issues`;
+        }
+
+        const qualityBar = document.getElementById("quality-bar");
+        qualityBar.classList.toggle("warning", score < 100);
+
+        const qualityDetail = document.getElementById("quality-detail");
+        qualityDetail.classList.toggle("warning", score < 100);
+    }
+
+    // Render providers and calculate each ratio against the API baseline.
+    function renderProviders(report) {
+        const rows = document.getElementById("provider-rows");
+        rows.replaceChildren();
+
+        const providers = Array.isArray(report.providers)
+            ? report.providers
+            : [];
+
+        const anomalies = Array.isArray(report.anomalies)
+            ? report.anomalies
+            : [];
+
+        const baseline = report.baseline_average_amount;
+
+        document.getElementById("flagged-count").textContent =
+            anomalies.length;
+
+        document.getElementById("anomaly-detail").textContent =
+            anomalies.length
+                ? `${anomalies.length} flagged`
+                : "None flagged";
+
+        document.getElementById("anomaly-bar").style.width =
+            anomalies.length ? "100%" : "0%";
+
+        if (!providers.length) {
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+
+            cell.colSpan = 4;
+            cell.className = "muted";
+            cell.textContent = "No provider rows were returned by the API.";
+
+            row.appendChild(cell);
+            rows.appendChild(row);
+            return;
+        }
+
+        for (const item of providers) {
+            const row = document.createElement("tr");
+
+            const providerCell = document.createElement("td");
+            providerCell.className = "provider";
+            providerCell.textContent = item.provider ?? "Unknown";
+
+            const averageCell = document.createElement("td");
+            averageCell.textContent = formatNumber(item.average_amount);
+
+            const anomaly = anomalies.find(
+                candidate => candidate.provider === item.provider
+            );
+
+            const ratioCell = document.createElement("td");
+            let ratio = null;
+
+            if (
+                anomaly &&
+                typeof anomaly.ratio_to_baseline === "number"
+            ) {
+                ratio = anomaly.ratio_to_baseline;
+            } else if (
+                typeof item.average_amount === "number" &&
+                typeof baseline === "number" &&
+                baseline > 0
+            ) {
+                ratio = item.average_amount / baseline;
+            }
+
+            ratioCell.textContent =
+                typeof ratio === "number"
+                    ? `${formatNumber(ratio)}×`
+                    : "—";
+
+            const statusCell = document.createElement("td");
+            const badge = document.createElement("span");
+            const flagged = Boolean(anomaly);
+
+            badge.className = flagged ? "badge" : "badge normal";
+            badge.textContent = flagged ? "Anomaly" : "Normal";
+
+            statusCell.appendChild(badge);
+
+            row.append(
+                providerCell,
+                averageCell,
+                ratioCell,
+                statusCell
+            );
+
+            rows.appendChild(row);
+        }
+    }
+
+    async function loadDashboard() {
+        try {
+            const response = await fetch("/health");
+
+            if (!response.ok) {
+                throw new Error("Health check failed");
+            }
+
+            document.getElementById("api-status").textContent = "Online";
+
+            document.getElementById("api-status-note").textContent =
+                "FastAPI responded successfully";
+        } catch {
+            document.getElementById("api-status").textContent = "Offline";
+
+            document.getElementById("api-status-note").textContent =
+                "Start the FastAPI server to connect";
+
+            showMessage(
+                "Backend not connected yet. Start FastAPI and open the dashboard through the server."
+            );
+
+            return;
+        }
+
+        try {
+            const [
+                incidentResponse,
+                qualityResponse,
+                providerResponse
+            ] = await Promise.all([
+                fetch("/incident/demo"),
+                fetch("/quality/demo"),
+                fetch("/quality/providers?anomaly_threshold=10")
+            ]);
+
+            if (incidentResponse.ok) {
+                const incident = await incidentResponse.json();
+                const summary = incident.summary ?? {};
+
+                document.getElementById("baseline-revenue").textContent =
+                    `₹${formatNumber(incident.healthy_baseline_revenue)}`;
+
+                document.getElementById("current-revenue").textContent =
+                    `₹${formatNumber(summary.revenue)}`;
+
+                document.getElementById("revenue-ratio").textContent =
+                    typeof incident.revenue_ratio === "number"
+                        ? `${formatNumber(incident.revenue_ratio)}×`
+                        : "—";
+            }
+
+            if (qualityResponse.ok) {
+                const qualityReport = await qualityResponse.json();
+                setQualityScore(qualityReport);
+            } else {
+                throw new Error("Could not load the quality report.");
+            }
+
+            if (providerResponse.ok) {
+                const providerReport = await providerResponse.json();
+                renderProviders(providerReport);
+            } else {
+                throw new Error("Could not load provider results.");
+            }
+
+            showMessage("Dashboard data refreshed from the FastAPI backend.");
+        } catch (error) {
+            showMessage(
+                `The backend responded, but some dashboard data could not be loaded. ${error.message}`
+            );
+        }
+    }
+
+    investigateButton.addEventListener("click", async () => {
+        investigateButton.disabled = true;
+        investigateButton.textContent = "Investigating…";
+
+        try {
+            const response = await fetch("/investigate/demo", {
+                method: "POST"
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    result.detail?.reason ??
+                    result.detail ??
+                    "Investigation failed."
+                );
+            }
+
+            const evidenceCount = Array.isArray(result.evidence)
+                ? result.evidence.length
+                : 0;
+
+            document.getElementById("evidence-detail").textContent =
+                `${evidenceCount} items`;
+
+            showMessage(
+                `Investigation completed for ${result.asset}.${result.field}. ` +
+                `${evidenceCount} evidence items returned. ` +
+                "This demo does not automatically confirm a root cause."
+            );
+        } catch (error) {
+            showMessage(
+                `Could not complete the investigation: ${error.message}`
+            );
+        } finally {
+            investigateButton.disabled = false;
+            investigateButton.textContent = "Run investigation →";
+        }
+    });
+
+    loadDashboard();
+</script>
+</body>
+</html>

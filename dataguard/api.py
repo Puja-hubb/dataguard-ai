@@ -2,8 +2,10 @@
 import logging
 import time
 import uuid
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field, field_validator
 
 from .evidence import build_demo_evidence, confirm_root_cause
@@ -22,6 +24,25 @@ app = FastAPI(
 
 BASELINE_REVENUE = 5500.0
 CATALOG = build_demo_evidence("raw_orders", "amount", 93.3)
+
+# Dashboard file location
+FRONTEND_FILE = (
+    Path(__file__).resolve().parent.parent
+    / "frontend"
+    / "index.html"
+)
+
+
+# Serve the frontend dashboard at the root URL
+@app.get("/", include_in_schema=False)
+def dashboard():
+    if not FRONTEND_FILE.is_file():
+        raise HTTPException(
+            status_code=500,
+            detail="Dashboard file is unavailable.",
+        )
+
+    return FileResponse(FRONTEND_FILE)
 
 
 @app.middleware("http")
@@ -314,3 +335,4 @@ def investigation_summary(
             status_code=503,
             detail="Investigation summary failed. Please try again later.",
         )
+
