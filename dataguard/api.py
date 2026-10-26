@@ -11,7 +11,11 @@ from pydantic import BaseModel, Field, field_validator
 from .evidence import build_demo_evidence, confirm_root_cause
 from .logging_config import configure_logging
 from .quality import profile_database_orders, profile_provider_amounts
-from .warehouse import revenue_summary
+from .warehouse import (
+    get_investigation_history,
+    revenue_summary,
+    save_investigation,
+)
 
 configure_logging()
 logger = logging.getLogger(__name__)
@@ -192,6 +196,7 @@ def provider_quality(
         )
 
 
+
 @app.post("/investigate/demo")
 def investigate_demo():
     logger.info("Demo investigation requested")
@@ -199,7 +204,9 @@ def investigate_demo():
     try:
         summary = revenue_summary()
     except Exception:
-        logger.exception("Demo investigation failed: warehouse unavailable")
+        logger.exception(
+            "Demo investigation failed: warehouse unavailable"
+        )
         raise HTTPException(
             status_code=503,
             detail="Warehouse unavailable. Please try again later.",
@@ -208,13 +215,7 @@ def investigate_demo():
     ratio = summary["revenue"] / BASELINE_REVENUE
     catalog = build_demo_evidence("raw_orders", "amount", ratio)
 
-    logger.info(
-        "Demo investigation completed: asset=raw_orders, "
-        "field=amount, evidence_count=%s",
-        len(catalog),
-    )
-
-    return {
+    result = {
         "asset": "raw_orders",
         "field": "amount",
         "evidence": [item.to_dict() for item in catalog],
@@ -227,6 +228,52 @@ def investigate_demo():
             "not fetched from DataHub."
         ),
     }
+
+    record = {
+        "investigation_id": str(uuid.uuid4()),
+        "created_at": time.strftime(
+            "%Y-%m-%dT%H:%M:%SZ",
+            time.gmtime(),
+        ),
+        **result,
+    }
+
+    try:
+        save_investigation(record)
+    except Exception:
+        logger.exception("Failed to save investigation history")
+        raise HTTPException(
+            status_code=503,
+            detail="Could not save investigation history. Please try again later.",
+        )
+
+    logger.info(
+        "Demo investigation completed: asset=raw_orders, "
+        "field=amount, evidence_count=%s",
+        len(catalog),
+    )
+
+    return result
+
+
+@app.get("/investigation/history")
+def investigation_history(
+    limit: int = Query(default=20, ge=1, le=100),
+):
+    try:
+        records = get_investigation_history(limit=limit)
+    except Exception:
+        logger.exception("Failed to retrieve investigation history")
+        raise HTTPException(
+            status_code=503,
+            detail="Investigation history is unavailable. Please try again later.",
+        )
+
+    return {
+        "count": len(records),
+        "investigations": records,
+    }
+
 
 
 @app.post("/confirm-root-cause")

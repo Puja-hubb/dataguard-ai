@@ -63,3 +63,92 @@ def reset_database() -> None:
         """)
     finally:
         con.close()
+
+def save_investigation(record: dict) -> None:
+    """Save an investigation report without modifying existing order data."""
+    import json
+
+    con = connect()
+    try:
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS investigation_history (
+                investigation_id VARCHAR PRIMARY KEY,
+                created_at VARCHAR NOT NULL,
+                asset VARCHAR NOT NULL,
+                field VARCHAR NOT NULL,
+                evidence_json VARCHAR NOT NULL,
+                next_step VARCHAR NOT NULL,
+                warning VARCHAR NOT NULL
+            )
+        """)
+
+        con.execute("""
+            INSERT INTO investigation_history (
+                investigation_id,
+                created_at,
+                asset,
+                field,
+                evidence_json,
+                next_step,
+                warning
+            )
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, [
+            record["investigation_id"],
+            record["created_at"],
+            record["asset"],
+            record["field"],
+            json.dumps(record["evidence"]),
+            record["next_step"],
+            record["warning"],
+        ])
+    finally:
+        con.close()
+
+
+def get_investigation_history(limit: int = 20) -> list[dict]:
+    """Return the newest saved investigations first."""
+    import json
+
+    con = connect()
+    try:
+        con.execute("""
+            CREATE TABLE IF NOT EXISTS investigation_history (
+                investigation_id VARCHAR PRIMARY KEY,
+                created_at VARCHAR NOT NULL,
+                asset VARCHAR NOT NULL,
+                field VARCHAR NOT NULL,
+                evidence_json VARCHAR NOT NULL,
+                next_step VARCHAR NOT NULL,
+                warning VARCHAR NOT NULL
+            )
+        """)
+
+        rows = con.execute("""
+            SELECT
+                investigation_id,
+                created_at,
+                asset,
+                field,
+                evidence_json,
+                next_step,
+                warning
+            FROM investigation_history
+            ORDER BY created_at DESC, investigation_id DESC
+            LIMIT ?
+        """, [limit]).fetchall()
+
+        return [
+            {
+                "investigation_id": row[0],
+                "created_at": row[1],
+                "asset": row[2],
+                "field": row[3],
+                "evidence": json.loads(row[4]),
+                "next_step": row[5],
+                "warning": row[6],
+            }
+            for row in rows
+        ]
+    finally:
+        con.close()

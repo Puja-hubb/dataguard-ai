@@ -302,5 +302,46 @@ def test_confirm_rejects_overlong_evidence_id():
     assert response.status_code == 422
 
 
+def test_investigation_endpoint_saves_history():
+    investigation_response = client.post("/investigate/demo")
+
+    assert investigation_response.status_code == 200
+
+    history_response = client.get("/investigation/history")
+
+    assert history_response.status_code == 200
+
+    data = history_response.json()
+    assert data["count"] >= 1
+
+    latest = data["investigations"][0]
+    assert latest["asset"] == "raw_orders"
+    assert latest["field"] == "amount"
+    assert latest["investigation_id"]
+    assert latest["created_at"]
+    assert len(latest["evidence"]) == 2
+
+
+def test_investigation_history_respects_limit():
+    first_response = client.post("/investigate/demo")
+    second_response = client.post("/investigate/demo")
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    response = client.get("/investigation/history?limit=1")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["count"] == 1
+    assert len(data["investigations"]) == 1
+
+
+def test_investigation_history_rejects_invalid_limit():
+    response = client.get("/investigation/history?limit=0")
+
+    assert response.status_code == 422
+
 
 
