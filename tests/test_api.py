@@ -343,5 +343,277 @@ def test_investigation_history_rejects_invalid_limit():
 
     assert response.status_code == 422
 
+def test_provider_quality_returns_503_when_profiling_fails(monkeypatch):
+    from dataguard import api
+
+    def failing_profile(anomaly_threshold=10.0):
+        raise RuntimeError("internal database details")
+
+    monkeypatch.setattr(
+        api,
+        "profile_provider_amounts",
+        failing_profile,
+    )
+
+    response = client.get("/quality/providers")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Provider profiling failed. Please try again later."
+    )
+    assert "internal database details" not in response.text
 
 
+def test_investigation_returns_503_when_saving_history_fails(monkeypatch):
+    from dataguard import api
+
+    def failing_save(record):
+        raise RuntimeError("internal database details")
+
+    monkeypatch.setattr(api, "save_investigation", failing_save)
+
+    response = client.post("/investigate/demo")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Could not save investigation history. Please try again later."
+    )
+    assert "internal database details" not in response.text
+
+
+def test_dashboard_serves_frontend_file():
+    response = client.get("/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "DataGuard AI" in response.text
+
+
+def test_dashboard_returns_500_when_frontend_file_is_missing(monkeypatch):
+    from pathlib import Path
+    from dataguard import api
+
+    missing_file = Path("missing-dashboard-test.html")
+    monkeypatch.setattr(api, "FRONTEND_FILE", missing_file)
+
+    response = client.get("/")
+
+    assert response.status_code == 500
+    assert response.json()["detail"] == (
+        "Dashboard file is unavailable."
+    )
+
+def test_investigation_history_returns_503_when_retrieval_fails(monkeypatch):
+    from dataguard import api
+
+    def failing_history(limit=20):
+        raise RuntimeError("internal database details")
+
+    monkeypatch.setattr(
+        api,
+        "get_investigation_history",
+        failing_history,
+    )
+
+    response = client.get("/investigation/history")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Investigation history is unavailable. Please try again later."
+    )
+    assert "internal database details" not in response.text
+
+def test_investigation_returns_503_when_warehouse_is_unavailable(monkeypatch):
+    from dataguard import api
+
+    def failing_revenue_summary():
+        raise RuntimeError("internal database details")
+
+    monkeypatch.setattr(
+        api,
+        "revenue_summary",
+        failing_revenue_summary,
+    )
+
+    response = client.post("/investigate/demo")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Warehouse unavailable. Please try again later."
+    )
+    assert "internal database details" not in response.text
+
+def test_provider_quality_returns_400_when_parameters_are_invalid(monkeypatch):
+    from dataguard import api
+
+    def failing_profile(anomaly_threshold):
+        raise ValueError("internal validation details")
+
+    monkeypatch.setattr(
+        api,
+        "profile_provider_amounts",
+        failing_profile,
+    )
+
+    response = client.get("/quality/providers")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Invalid provider profiling parameters."
+    )
+    assert "internal validation details" not in response.text
+
+def test_confirm_returns_503_when_warehouse_is_unavailable(monkeypatch):
+    from dataguard import api
+
+    def failing_revenue_summary():
+        raise RuntimeError("internal database details")
+
+    monkeypatch.setattr(
+        api,
+        "revenue_summary",
+        failing_revenue_summary,
+    )
+
+    response = client.post(
+        "/confirm-root-cause",
+        json={
+            "asset": "raw_orders",
+            "field": "amount",
+            "evidence_ids": ["evidence-1"],
+        },
+    )
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Warehouse unavailable. Please try again later."
+    )
+    assert "internal database details" not in response.text
+
+def test_investigation_summary_returns_503_when_profiling_fails(monkeypatch):
+    from dataguard import api
+
+    def failing_profile():
+        raise RuntimeError("internal profiling details")
+
+    monkeypatch.setattr(
+        api,
+        "profile_database_orders",
+        failing_profile,
+    )
+
+    response = client.get("/investigation/summary")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "Investigation summary failed. Please try again later."
+    )
+    assert "internal profiling details" not in response.text
+
+def test_investigation_summary_assigns_low_severity(monkeypatch):
+    from dataguard import api
+
+    monkeypatch.setattr(
+        api,
+        "profile_database_orders",
+        lambda: {"status": "success"},
+    )
+    monkeypatch.setattr(
+        api,
+        "profile_provider_amounts",
+        lambda anomaly_threshold: {
+            "anomalies": [
+                {
+                    "provider": "Demo Provider",
+                    "ratio_to_baseline": 5.0,
+                }
+            ]
+        },
+    )
+
+    response = client.get("/investigation/summary")
+
+    assert response.status_code == 200
+    assert response.json()["incident_finding"]["severity"] == "LOW"
+    assert response.json()["incident_finding"]["provider"] == "Demo Provider"
+
+def test_investigation_summary_assigns_medium_severity(monkeypatch):
+    from dataguard import api
+
+    monkeypatch.setattr(
+        api,
+        "profile_database_orders",
+        lambda: {"status": "success"},
+    )
+    monkeypatch.setattr(
+        api,
+        "profile_provider_amounts",
+        lambda anomaly_threshold: {
+            "anomalies": [
+                {
+                    "provider": "Demo Provider",
+                    "ratio_to_baseline": 20.0,
+                }
+            ]
+        },
+    )
+
+    response = client.get("/investigation/summary")
+
+    assert response.status_code == 200
+    assert response.json()["incident_finding"]["severity"] == "MEDIUM"
+
+def test_demo_incident_returns_revenue_summary(monkeypatch):
+    from dataguard import api
+
+    monkeypatch.setattr(
+        api,
+        "revenue_summary",
+        lambda: {"revenue": 5500.0},
+    )
+
+    response = client.get("/incident/demo")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["incident_id"] == "demo-revenue-anomaly"
+    assert data["status"] == "INVESTIGATION_REQUIRED"
+    assert data["summary"] == {"revenue": 5500.0}
+    assert data["healthy_baseline_revenue"] == 5500.0
+    assert data["revenue_ratio"] == 1.0
+
+import asyncio
+
+from starlette.requests import Request
+
+from dataguard import api
+
+
+def test_request_middleware_logs_and_reraises_exception():
+    scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/test",
+        "headers": [],
+        "query_string": b"",
+        "server": ("testserver", 80),
+        "client": ("testclient", 1234),
+        "scheme": "http",
+    }
+    request = Request(scope)
+
+    async def failing_call_next(_request):
+        raise RuntimeError("simulated request failure")
+
+    async def run_test():
+        try:
+            await api.request_tracking_middleware(
+                request,
+                failing_call_next,
+            )
+        except RuntimeError as exc:
+            assert str(exc) == "simulated request failure"
+        else:
+            raise AssertionError("Expected RuntimeError was not raised")
+
+    asyncio.run(run_test())

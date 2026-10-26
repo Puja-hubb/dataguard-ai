@@ -169,4 +169,58 @@ def test_unsupported_evidence_type_is_rejected():
 
     assert result["accepted"] is False
 
+def test_confirm_root_cause_rejects_unsupported_evidence_type():
+    from dataguard.evidence import Evidence, confirm_root_cause
 
+    unsupported_evidence = Evidence(
+        evidence_id="evidence-unknown",
+        evidence_type="prediction",
+        asset="raw_orders",
+        field="amount",
+        statement="This evidence type is not supported.",
+    )
+
+    result = confirm_root_cause(
+        asset="raw_orders",
+        field="amount",
+        evidence_ids=["evidence-unknown"],
+        evidence_catalog=[unsupported_evidence],
+    )
+
+    assert result["accepted"] is False
+    assert result["reason"] == (
+        "Evidence catalog contains an unsupported evidence type."
+    )
+
+
+
+def test_confirm_root_cause_rejects_duplicate_evidence_ids():
+    from dataguard.evidence import Evidence, confirm_root_cause
+
+    first = Evidence(
+        evidence_id="duplicate-id",
+        evidence_type="lineage",
+        asset="raw_orders",
+        field="amount",
+        statement="First evidence item.",
+    )
+    second = Evidence(
+        evidence_id="duplicate-id",
+        evidence_type="quantitative",
+        asset="raw_orders",
+        field="amount",
+        statement="Second evidence item.",
+        measured_value=5.0,
+    )
+
+    result = confirm_root_cause(
+        asset="raw_orders",
+        field="amount",
+        evidence_ids=["duplicate-id"],
+        evidence_catalog=[first, second],
+    )
+
+    assert result["accepted"] is False
+    assert result["reason"] == (
+        "Evidence catalog contains duplicate evidence IDs."
+    )
