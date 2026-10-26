@@ -1,22 +1,28 @@
+
 # DataGuard AI
 
-**A data quality and anomaly investigation platform built with Python, FastAPI, DuckDB, and pytest.**
+**A data quality, anomaly detection, and investigation platform built with Python, FastAPI, DuckDB, and pytest.**
 
-DataGuard AI is an educational project that demonstrates how to investigate data-quality issues, detect unusual provider-level revenue patterns, and validate evidence submitted to support a root-cause claim.
+DataGuard AI is a portfolio project that demonstrates how to identify suspicious data patterns, profile data quality, collect investigation evidence, and maintain an investigation history through a REST API and an interactive web dashboard.
 
-The project currently uses synthetic data and deterministic rules. It is designed as a foundation for learning data engineering, backend development, data quality, and incident investigation workflows.
+The application uses a synthetic orders dataset and deterministic validation rules to simulate a data incident in which one payment provider reports transaction amounts at a significantly different scale from the baseline.
+
+The project demonstrates practical skills in backend development, data engineering, analytical SQL, API validation, automated testing, and Git-based development.
 
 ## Features
 
-- Generate a reproducible synthetic orders dataset.
-- Store and query data using DuckDB.
-- Calculate revenue summaries and compare provider-level metrics.
-- Detect unusual provider averages using a configurable anomaly threshold.
-- Profile records for missing order IDs, missing amounts, duplicate order IDs, and negative amounts.
-- Generate lineage and quantitative evidence for a data incident.
-- Validate evidence against the expected asset and field.
-- Expose data-quality and investigation functionality through a FastAPI REST API.
-- Validate application behavior using automated pytest tests.
+- **Synthetic data generation:** Generate a reproducible demonstration dataset of orders.
+- **Analytical data storage:** Store and query order data using DuckDB.
+- **Data quality profiling:** Check for missing order IDs, missing amounts, duplicate order IDs, and negative amounts.
+- **Provider anomaly detection:** Compare provider-level average amounts against a baseline using a configurable threshold.
+- **Incident analysis:** Compare baseline and current revenue to highlight unusual changes.
+- **Investigation evidence:** Generate lineage and quantitative evidence for a selected data asset and field.
+- **Evidence validation:** Validate submitted evidence against the expected asset, field, and supported evidence rules.
+- **Investigation history:** Save and retrieve investigation records using DuckDB.
+- **REST API:** Expose health, incident, data quality, and investigation functionality through FastAPI.
+- **Interactive dashboard:** View API status, revenue metrics, data quality results, provider anomalies, and investigation history.
+- **JSON report export:** Export an investigation report from the dashboard.
+- **Automated testing:** Verify application behavior with pytest.
 
 ## Technology Stack
 
@@ -24,47 +30,52 @@ The project currently uses synthetic data and deterministic rules. It is designe
 |---|---|
 | Python | Application logic and data processing |
 | FastAPI | REST API development |
-| DuckDB | Analytical database |
-| Pydantic | Request validation |
+| DuckDB | Analytical database and investigation history storage |
+| Pydantic | Request data validation |
+| SQL | Data queries and analytical operations |
+| HTML, CSS, JavaScript | Interactive web dashboard |
 | pytest | Automated testing |
 | Git and GitHub | Version control and project hosting |
 
 ## Architecture
 
-DataGuard AI follows a simple flow: a client sends a request to the API, the application queries the data warehouse, and the relevant profiler or evidence-validation logic processes the request before returning a response.
+The application follows a simple data investigation workflow.
+
+1. A user interacts with the dashboard or sends a request to the API.
+2. FastAPI routes the request to the appropriate application logic.
+3. The application queries the DuckDB warehouse and analyzes the demonstration data.
+4. Data quality and anomaly detection logic identifies suspicious patterns.
+5. Evidence validation checks investigation evidence against the requested asset and field.
+6. Investigation records can be saved and retrieved from the investigation history.
+7. The API returns results to the dashboard, where the user can review and export an investigation report.
 
 ```text
-                 Client / API User
-                         |
-                         v
-                FastAPI Application
-                         |
-             +-----------+-----------+
-             |           |           |
-             v           v           v
-        Data Quality  Provider     Evidence
-          Profiler    Anomaly     Validation
-                      Detection
-             |           |           |
-             +-----------+-----------+
-                         |
-                         v
-                   DuckDB Database
-                    (raw_orders)
-                         |
-                         v
-                 Investigation Results
-              Quality Reports and Evidence
+                    User / Dashboard
+                           |
+                           v
+                    FastAPI Application
+                           |
+             +-------------+--------------+
+             |             |              |
+             v             v              v
+       Data Quality    Anomaly         Evidence
+        Profiling     Detection       Validation
+             |             |              |
+             +-------------+--------------+
+                           |
+                           v
+                     DuckDB Warehouse
+                           |
+              +------------+------------+
+              |                         |
+              v                         v
+        Synthetic Orders         Investigation
+            Dataset                 History
+                                        |
+                                        v
+                               Dashboard / JSON
+                                  Report Export
 ```
-
-### Component Responsibilities
-
-- **FastAPI Application:** Exposes endpoints for health checks, incident investigation, data-quality reports, and root-cause evidence validation.
-- **Data Quality Profiler:** Checks records for missing order IDs, missing amounts, duplicate IDs, and negative amounts.
-- **Provider Anomaly Detection:** Compares provider-level average amounts to a baseline and flags unusually high values.
-- **Evidence Validation:** Checks whether the submitted evidence meets the prototype's validation rules for a specified asset and field.
-- **DuckDB Database:** Stores and queries the synthetic `raw_orders` dataset.
-- **pytest:** Runs automated tests for API behavior, data-quality checks, and evidence-validation rules.
 
 ## Project Structure
 
@@ -76,7 +87,10 @@ dataguard-ai-starter/
 │   ├── evidence.py
 │   ├── quality.py
 │   ├── seed.py
-│   └── warehouse.py
+│   ├── warehouse.py
+│   └── logging_config.py
+├── frontend/
+│   └── index.html
 ├── tests/
 │   ├── test_api.py
 │   ├── test_evidence.py
@@ -91,57 +105,113 @@ dataguard-ai-starter/
 ## Requirements
 
 - Python 3.11 or newer
-- `uv` (recommended) or `pip`
+- Git
+- A terminal such as Windows PowerShell
+- `uv` or `pip` for Python dependency management
 
-## Setup with uv
+The project has been developed and tested in a Windows environment with a Python virtual environment.
 
-Run the following commands from the project directory:
+## Setup and Run
 
-```bash
-uv venv
-uv sync --extra dev
-uv run python -m dataguard.seed
-uv run uvicorn dataguard.api:app --reload
+### 1. Clone the repository
+
+```powershell
+git clone https://github.com/Puja-hubb/dataguard-ai.git
+cd dataguard-ai
 ```
 
-Open the following URL to explore the interactive API documentation:
+### 2. Create and activate a virtual environment
 
-[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-
-## Setup with pip
-
-Create and activate a virtual environment.
-
-For Windows PowerShell:
+On Windows PowerShell:
 
 ```powershell
 python -m venv .venv
-.venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 ```
 
-Install the project and development dependencies:
+If PowerShell blocks activation, follow your system's Python environment guidance rather than changing execution policies without understanding the implications.
 
-```bash
+### 3. Install the project
+
+Using pip:
+
+```powershell
 python -m pip install -e ".[dev]"
+```
+
+Alternatively, if you use `uv` and the project's development dependency configuration:
+
+```powershell
+uv sync --extra dev
+```
+
+### 4. Generate the demonstration data
+
+With the environment activated:
+
+```powershell
 python -m dataguard.seed
+```
+
+If you use `uv`, run:
+
+```powershell
+uv run python -m dataguard.seed
+```
+
+### 5. Start the API
+
+With pip:
+
+```powershell
 python -m uvicorn dataguard.api:app --reload
 ```
 
-## API Endpoints
+Or with `uv`:
 
-The following endpoints are available in the current application:
+```powershell
+uv run uvicorn dataguard.api:app --reload
+```
+
+### 6. Open the application
+
+- **Interactive API documentation:** http://127.0.0.1:8000/docs
+- **API health check:** http://127.0.0.1:8000/health
+- **Web dashboard:** Open `frontend/index.html` in your browser while the API is running.
+
+The dashboard sends requests to the local API. If the dashboard cannot connect, check that the API is running and review the browser console for errors.
+
+## API Endpoints
 
 | Method | Endpoint | Purpose |
 |---|---|---|
 | GET | `/health` | Check API health |
 | GET | `/incident/demo` | Inspect the demonstration incident |
-| GET | `/quality/demo` | Retrieve the demonstration quality report |
+| GET | `/quality/demo` | Retrieve the demonstration data quality report |
 | GET | `/quality/providers` | Inspect provider-level anomaly statistics |
-| POST | `/investigate/demo` | Generate investigation evidence |
-| POST | `/confirm-root-cause` | Validate submitted evidence |
+| POST | `/investigate/demo` | Generate investigation evidence and save an investigation record |
+| POST | `/confirm-root-cause` | Validate submitted investigation evidence |
 | GET | `/investigation/summary` | Retrieve a combined investigation summary |
+| GET | `/investigation/history` | Retrieve saved investigation records |
 
-### Example Root-Cause Confirmation Request
+Use the interactive API documentation at `/docs` to inspect request schemas, submit requests, and review actual responses.
+
+## Example Investigation Workflow
+
+The demonstration workflow simulates an issue in which transaction amounts from one provider are much larger than the baseline.
+
+The dashboard can be used to:
+
+1. Review the current API status.
+2. Inspect revenue metrics and data quality results.
+3. Identify provider-level anomalies.
+4. Run an investigation and review the returned evidence.
+5. View saved investigation history.
+6. Export an investigation report as a JSON file.
+
+### Example root-cause confirmation request
+
+The following illustrates the general structure of a request. Use evidence IDs returned by the running API.
 
 ```json
 {
@@ -154,60 +224,90 @@ The following endpoints are available in the current application:
 }
 ```
 
-Use the actual evidence IDs returned by your running API if they differ.
+This is an illustrative payload. The actual evidence IDs and accepted values depend on the response and validation rules of the running application.
 
-The evidence-validation workflow checks whether the submitted evidence meets the prototype's rules. Acceptance does not independently prove that a proposed root cause is correct.
-
-## Run the Tests
-
-With the virtual environment activated, run:
-
-```powershell
-python -m pytest
-```
-
-The current test suite contains 20 tests covering:
-
-- API health and endpoint responses.
-- Provider anomaly detection and threshold validation.
-- Missing or mismatched investigation evidence.
-- Evidence validation for the expected asset and field.
-- Data-quality profiling.
-
-The last recorded test run completed with **20 passed**. Run the tests again after making code changes to verify the current state.
+Evidence validation indicates whether submitted evidence satisfies the prototype's rules. It does not independently prove that a proposed root cause is factually correct.
 
 ## Example Data Scenario
 
-The synthetic dataset contains two provider cohorts. One provider records amounts in normal units, while the other provider's amounts are multiplied by 100.
+The synthetic dataset contains two provider cohorts:
 
-This creates a controlled anomaly that the application can detect using provider-level statistics.
+- `cloudpay_v1` represents the baseline provider with an average transaction amount of approximately `29.5`.
+- `cloudpay_v2` represents an anomalous provider with an average transaction amount of approximately `2950`.
 
-The scenario demonstrates how data-quality checks can highlight suspicious metrics for further investigation.
+The second provider's average is approximately 100 times the baseline average. This controlled scenario allows the application to demonstrate how provider-level metrics can help identify suspicious data patterns.
+
+The demonstration data is synthetic and does not represent real customer transactions.
+
+## Run the Tests
+
+Activate the project's virtual environment, then run:
+
+```powershell
+pytest -q
+```
+
+The automated test suite covers areas including:
+
+- API health and endpoint responses.
+- API request validation.
+- Provider anomaly detection and threshold validation.
+- Data quality profiling.
+- Evidence validation and asset/field consistency.
+- Investigation behavior and history retrieval.
+
+**Latest verified test result: 36 passed, 1 warning.**
+
+The warning was a Starlette deprecation notice concerning the use of `httpx` with its test client. It did not cause a test failure.
+
+Run the tests again after changing the code to verify the current state.
 
 ## Safety and Limitations
 
+DataGuard AI is an educational prototype, not a production incident management system.
+
 - The dataset is synthetic and generated locally.
-- Provider anomaly detection uses a simple statistical heuristic, not a production-calibrated baseline.
-- Evidence validation checks identifiers, evidence types, and asset/field consistency; it is not a production security boundary.
-- Evidence acceptance does not independently establish a true causal root cause.
-- The project does not automatically repair data.
-- The API currently has no authentication and should be used locally for development.
-- No live DataHub integration, LLM-powered investigation, frontend, or automated production repair is implemented in this milestone.
+- Anomaly detection uses a simple heuristic rather than a production-calibrated statistical model.
+- Lineage evidence is demonstration metadata; a live DataHub integration has not been implemented.
+- Evidence validation checks prototype rules and does not establish definitive causality.
+- The application does not automatically repair production data.
+- The API does not currently provide authentication or role-based access control.
+- The project does not currently use an LLM to conduct investigations.
+- The JSON export provides a report file, not a digitally signed or independently verified audit record.
+
+Do not expose the development API to untrusted networks without appropriate security controls.
 
 ## Future Improvements
 
-Potential next steps include:
+Potential improvements include:
 
-- Add stronger tests for edge cases and failure scenarios.
-- Introduce historical baselines for anomaly detection.
-- Add richer lineage and investigation evidence.
-- Improve error handling and API validation.
-- Add authentication and access control.
-- Build a frontend for visualizing investigation results.
-- Explore optional AI-assisted incident summaries with evidence-based safeguards.
+- Add historical baselines and more robust anomaly detection.
+- Integrate a real data catalog and lineage service.
+- Add richer investigation evidence and configurable rules.
+- Improve structured logging, monitoring, and error handling.
+- Add authentication and role-based access control.
+- Introduce integration tests and additional edge-case coverage.
+- Add dashboard filtering and more detailed investigation reports.
+- Explore optional AI-assisted incident summaries grounded in verified evidence.
+- Add deployment instructions and a hosted demonstration.
 
-## Learning Goals
+## Learning Outcomes
 
-This project provides hands-on practice with Python, REST API development, analytical SQL, data-quality profiling, anomaly detection, automated testing, and Git-based collaboration.
+This project provides practical experience with:
 
-The goal is to build a reliable foundation that can be extended and explained clearly during technical interviews.
+- Python application development.
+- REST API design with FastAPI.
+- Analytical SQL and DuckDB.
+- Data quality profiling and anomaly detection.
+- Request validation and evidence-based workflows.
+- Automated testing with pytest.
+- Frontend integration with a backend API.
+- Git, GitHub, and iterative development.
+
+## Repository
+
+GitHub: https://github.com/Puja-hubb/dataguard-ai
+
+---
+
+**Project status:** Educational portfolio project with a working API, dashboard, synthetic data analysis, investigation history, JSON report export, and an automated test suite.
