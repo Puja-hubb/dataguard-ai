@@ -656,6 +656,8 @@
 </div>
 
 <script>
+    const API_BASE_URL = "http://127.0.0.1:8000";
+
     const message = document.getElementById("message");
     const investigateButton = document.getElementById("investigate-button");
     const exportReportButton = document.getElementById("export-report-button");
@@ -686,7 +688,7 @@
         historyTableBody.replaceChildren();
 
         try {
-            const response = await fetch("/investigation/history?limit=20");
+            const response = await fetch(`${API_BASE_URL}/investigation/history?limit=20`);
 
             if (!response.ok) {
                 throw new Error("Unable to load investigation history.");
@@ -904,7 +906,7 @@
 
     async function loadDashboard() {
         try {
-            const response = await fetch("/health");
+            const response = await fetch(`${API_BASE_URL}/health`);
 
             if (!response.ok) {
                 throw new Error("Health check failed");
@@ -933,9 +935,9 @@
                 qualityResponse,
                 providerResponse
             ] = await Promise.all([
-                fetch("/incident/demo"),
-                fetch("/quality/demo"),
-                fetch("/quality/providers?anomaly_threshold=10")
+                fetch(`${API_BASE_URL}/incident/demo`),
+                fetch(`${API_BASE_URL}/quality/demo`),
+                fetch(`${API_BASE_URL}/quality/providers?anomaly_threshold=10`)
             ]);
 
             if (incidentResponse.ok) {
@@ -981,7 +983,7 @@
         investigateButton.textContent = "Investigating…";
 
         try {
-            const response = await fetch("/investigate/demo", {
+            const response = await fetch(`${API_BASE_URL}/investigate/demo`, {
                 method: "POST"
             });
 
