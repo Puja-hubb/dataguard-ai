@@ -26,13 +26,14 @@ app = FastAPI(
     description="Educational evidence-gated data incident response API",
     version="0.1.0",
 )
+
+# Allow the local frontend to communicate with the FastAPI backend.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://127.0.0.1:5500",
         "http://localhost:5500",
     ],
-    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -40,7 +41,7 @@ app.add_middleware(
 BASELINE_REVENUE = 5500.0
 CATALOG = build_demo_evidence("raw_orders", "amount", 93.3)
 
-# Dashboard file location
+# Dashboard file location.
 FRONTEND_FILE = (
     Path(__file__).resolve().parent.parent
     / "frontend"
@@ -48,9 +49,9 @@ FRONTEND_FILE = (
 )
 
 
-# Serve the frontend dashboard at the root URL
 @app.get("/", include_in_schema=False)
 def dashboard():
+    """Serve the frontend dashboard."""
     if not FRONTEND_FILE.is_file():
         raise HTTPException(
             status_code=500,
@@ -62,6 +63,7 @@ def dashboard():
 
 @app.middleware("http")
 async def request_tracking_middleware(request: Request, call_next):
+    """Log request IDs, duration, status, and failures."""
     supplied_id = request.headers.get("X-Request-ID", "")
 
     if (
@@ -187,7 +189,7 @@ def demo_data_quality():
 
 @app.get("/quality/providers")
 def provider_quality(
-    anomaly_threshold: float = Query(default=10.0, gt=1)
+    anomaly_threshold: float = Query(default=10.0, gt=1),
 ):
     try:
         return profile_provider_amounts(
@@ -205,7 +207,6 @@ def provider_quality(
             status_code=503,
             detail="Provider profiling failed. Please try again later.",
         )
-
 
 
 @app.post("/investigate/demo")
@@ -255,7 +256,10 @@ def investigate_demo():
         logger.exception("Failed to save investigation history")
         raise HTTPException(
             status_code=503,
-            detail="Could not save investigation history. Please try again later.",
+            detail=(
+                "Could not save investigation history. "
+                "Please try again later."
+            ),
         )
 
     logger.info(
@@ -271,20 +275,23 @@ def investigate_demo():
 def investigation_history(
     limit: int = Query(default=20, ge=1, le=100),
 ):
+    """Return recent saved investigations."""
     try:
         records = get_investigation_history(limit=limit)
     except Exception:
         logger.exception("Failed to retrieve investigation history")
         raise HTTPException(
             status_code=503,
-            detail="Investigation history is unavailable. Please try again later.",
+            detail=(
+                "Investigation history is unavailable. "
+                "Please try again later."
+            ),
         )
 
     return {
         "count": len(records),
         "investigations": records,
     }
-
 
 
 @app.post("/confirm-root-cause")
@@ -318,7 +325,7 @@ def confirm(request: ConfirmationRequest):
 
 @app.get("/investigation/summary")
 def investigation_summary(
-    anomaly_threshold: float = Query(default=10.0, gt=1)
+    anomaly_threshold: float = Query(default=10.0, gt=1),
 ):
     try:
         quality_report = profile_database_orders()
@@ -387,10 +394,11 @@ def investigation_summary(
             ),
         }
 
+    except HTTPException:
+        raise
     except Exception:
         logger.exception("Investigation summary failed")
         raise HTTPException(
             status_code=503,
             detail="Investigation summary failed. Please try again later.",
         )
-

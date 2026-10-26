@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -656,7 +655,7 @@
 </div>
 
 <script>
-    const API_BASE_URL = "http://127.0.0.1:8000";
+    const API_BASE_URL = "http://127.0.0.1:8001";
 
     const message = document.getElementById("message");
     const investigateButton = document.getElementById("investigate-button");
@@ -1056,7 +1055,9 @@
         downloadLink.click();
         downloadLink.remove();
 
-        URL.revokeObjectURL(downloadUrl);
+        setTimeout(() => {
+            URL.revokeObjectURL(downloadUrl);
+        }, 1000);
 
         showMessage("Investigation report downloaded successfully.");
     });
