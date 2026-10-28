@@ -420,256 +420,251 @@
             .card { padding: 14px; }
             .card-value { font-size: 24px; }
             .incident-metrics { grid-template-columns: 1fr; }
-            .panel { padding: 16px; }
         }
     </style>
 </head>
-
 <body>
-<div class="layout">
-    <aside>
-        <div class="brand">
-            <div class="brand-icon">⬡</div>
-            <span>DataGuard AI</span>
-        </div>
-
-        <p class="eyebrow">Workspace</p>
-        <div class="nav-item active">▦ &nbsp; Overview</div>
-        <div class="nav-item">◇ &nbsp; Incidents</div>
-        <div class="nav-item">◉ &nbsp; Data quality</div>
-        <div class="nav-item">⌘ &nbsp; Investigations</div>
-
-        <div class="sidebar-note">
-            <strong style="color: var(--text)">Learning prototype</strong>
-            <p>Investigate synthetic data anomalies using evidence-based validation.</p>
-        </div>
-    </aside>
-
-    <main>
-        <header class="topbar">
-            <div>
-                <h1>Data reliability overview</h1>
-                <p class="subtitle">
-                    Monitor data quality and investigate unusual revenue patterns.
-                </p>
-            </div>
-            <span class="demo-label">● &nbsp; DEMO ENVIRONMENT</span>
-        </header>
-
-        <section class="cards">
-            <article class="card">
-                <div class="card-label">Active incidents</div>
-                <div class="card-value" id="active-incidents">1</div>
-                <div class="card-foot">
-                    <span class="status-dot warning"></span>Needs investigation
-                </div>
-            </article>
-
-            <article class="card">
-                <div class="card-label">Data quality</div>
-                <div class="card-value" id="quality-score">—</div>
-                <div class="card-foot">Waiting for quality report</div>
-            </article>
-
-            <article class="card">
-                <div class="card-label">Flagged providers</div>
-                <div class="card-value" id="flagged-count">—</div>
-                <div class="card-foot">Anomaly threshold applied</div>
-            </article>
-
-            <article class="card">
-                <div class="card-label">API status</div>
-                <div class="card-value" id="api-status">Unknown</div>
-                <div class="card-foot" id="api-status-note">
-                    Waiting for backend connection
-                </div>
-            </article>
-        </section>
-
-        <div class="section-heading">
-            <h2>Incident overview</h2>
-            <span class="muted" style="font-size: 12px">
-                Synthetic revenue scenario
-            </span>
-        </div>
-
-        <section class="content-grid">
-            <article class="panel">
-                <h3>Revenue anomaly detected</h3>
-                <span class="incident-status" id="incident-status">
-                    INVESTIGATION REQUIRED
-                </span>
-
-                <p class="incident-title">Provider amount mismatch</p>
-                <p class="incident-copy">
-                    One payment provider reports transaction amounts that may use a
-                    different unit. Investigate the data before making production changes.
-                </p>
-
-                <div class="incident-metrics">
-                    <div class="metric">
-                        <span>Healthy baseline revenue</span>
-                        <strong id="baseline-revenue">₹5,500</strong>
-                    </div>
-
-                    <div class="metric">
-                        <span>Current revenue</span>
-                        <strong id="current-revenue">—</strong>
-                    </div>
-
-                    <div class="metric">
-                        <span>Revenue ratio</span>
-                        <strong id="revenue-ratio">—</strong>
-                    </div>
-
-                    <div class="metric">
-                        <span>Proposed asset</span>
-                        <strong style="font-size: 15px">raw_orders.amount</strong>
-                    </div>
-                </div>
-
-                <button class="primary-button" id="investigate-button" type="button">
-                    Run investigation
-                </button>
-
-                <button class="primary-button" id="export-report-button" type="button" disabled>
-                    Export investigation report
-                </button>
-
-                <div id="message" role="status" aria-live="polite"></div>
-            </article>
-
-            <article class="panel">
-                <h3>Data quality snapshot</h3>
-                <p class="panel-description">
-                    Checks reported by the backend profiler.
-                </p>
-
-                <div class="quality-list">
-                    <div>
-                        <div class="quality-row">
-                            <span>Overall quality score</span>
-                            <strong class="quality-value" id="quality-detail">—</strong>
-                        </div>
-                        <div class="bar">
-                            <div class="bar-fill" id="quality-bar" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="quality-row">
-                            <span>Provider anomaly detection</span>
-                            <strong class="quality-value warning" id="anomaly-detail">
-                                Pending
-                            </strong>
-                        </div>
-                        <div class="bar">
-                            <div class="bar-fill warning" id="anomaly-bar" style="width: 0%"></div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="quality-row">
-                            <span>Evidence verification</span>
-                            <strong class="quality-value" id="evidence-detail">Ready</strong>
-                        </div>
-                        <div class="bar">
-                            <div class="bar-fill" style="width: 100%"></div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        </section>
-
-        <section class="panel table-panel">
-            <div class="section-heading" style="margin-top: 0">
-                <h3>Provider anomaly monitor</h3>
-                <span class="muted" style="font-size: 12px">
-                    Threshold: 10× baseline
-                </span>
+    <div class="layout">
+        <aside>
+            <div class="brand">
+                <div class="brand-icon">⬡</div>
+                <span>DataGuard AI</span>
             </div>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Provider</th>
-                            <th>Average amount</th>
-                            <th>Baseline ratio</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="provider-rows">
-                        <tr>
-                            <td colspan="4" class="muted">
-                                Connecting to backend...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <div class="eyebrow">Workspace</div>
+            <div class="nav-item active">▦ &nbsp; Overview</div>
+            <div class="nav-item">◈ &nbsp; Data quality</div>
+            <div class="nav-item">⌁ &nbsp; Investigations</div>
 
-        <section class="panel" id="investigation-history-panel">
-            <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div class="sidebar-note">
+                <strong>Demo environment</strong>
+                <p>Synthetic data for learning and demonstration. Findings require human verification.</p>
+            </div>
+        </aside>
+
+        <main>
+            <header class="topbar">
                 <div>
-                    <h3>Investigation history</h3>
-                    <p class="panel-description">
-                        Previously saved investigations from the DataGuard AI database.
+                    <h1>Data reliability overview</h1>
+                    <p class="subtitle">
+                        Monitor data quality and investigate unusual revenue patterns.
                     </p>
                 </div>
+                <div class="demo-label">● &nbsp; DEMO ENVIRONMENT</div>
+            </header>
 
-                <button class="primary-button" id="refresh-history-button" type="button">
-                    Refresh history
-                </button>
+            <section class="cards" aria-label="Overview metrics">
+                <article class="card">
+                    <div class="card-label">API status</div>
+                    <div class="card-value" id="api-status">Checking…</div>
+                    <div class="card-foot" id="api-status-note">Connecting to FastAPI</div>
+                </article>
+
+                <article class="card">
+                    <div class="card-label">Records checked</div>
+                    <div class="card-value" id="records-checked">—</div>
+                    <div class="card-foot">Raw orders table</div>
+                </article>
+
+                <article class="card">
+                    <div class="card-label">Data quality checks</div>
+                    <div class="card-value" id="quality-score">—</div>
+                    <div class="card-foot">Passed checks</div>
+                </article>
+
+                <article class="card">
+                    <div class="card-label">Flagged providers</div>
+                    <div class="card-value" id="flagged-providers">—</div>
+                    <div class="card-foot">Requires investigation</div>
+                </article>
+            </section>
+
+            <div class="section-heading">
+                <h2>Active incident</h2>
+                <span class="muted">Synthetic teaching fixture</span>
             </div>
 
-            <p id="history-message" role="status" aria-live="polite">
-                Loading investigation history...
-            </p>
+            <section class="content-grid">
+                <article class="panel">
+                    <h3>Revenue anomaly investigation</h3>
+                    <p class="panel-description">
+                        An unexpected revenue change has been detected in the demo warehouse.
+                    </p>
 
-            <div class="table-wrap">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Date and time</th>
-                            <th>Asset</th>
-                            <th>Field</th>
-                            <th>Evidence</th>
-                            <th>Investigation ID</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-table-body">
-                        <tr>
-                            <td colspan="5">Loading...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+                    <div class="incident-status">INVESTIGATION REQUIRED</div>
 
-        <footer>
-            DataGuard AI · Educational prototype · Uses synthetic data, not live payment systems.
-        </footer>
-    </main>
-</div>
+                    <h2 class="incident-title">Provider amount discrepancy</h2>
+
+                    <p class="incident-copy">
+                        A provider's average transaction amount differs substantially from
+                        the baseline. This is a signal to investigate—not proof of a root cause.
+                        Verify source units and transformation logic before changing production data.
+                    </p>
+
+                    <div class="incident-metrics">
+                        <div class="metric">
+                            <span>Current demo revenue</span>
+                            <strong id="current-revenue">—</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Healthy baseline revenue</span>
+                            <strong id="baseline-revenue">—</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Revenue / baseline</span>
+                            <strong id="revenue-ratio">—</strong>
+                        </div>
+
+                        <div class="metric">
+                            <span>Evidence returned</span>
+                            <strong id="evidence-detail">Not run</strong>
+                        </div>
+                    </div>
+
+                    <button class="primary-button" id="investigate-button" type="button">
+                        Run investigation →
+                    </button>
+
+                    <button class="primary-button" id="export-report-button" type="button">
+                        Export investigation report
+                    </button>
+
+                    <div id="message" role="status" aria-live="polite"></div>
+                </article>
+
+                <article class="panel">
+                    <h3>Data quality profile</h3>
+                    <p class="panel-description">
+                        Basic integrity checks against the synthetic orders table.
+                    </p>
+
+                    <div class="quality-list">
+                        <div>
+                            <div class="quality-row">
+                                <span>Missing order IDs</span>
+                                <strong class="quality-value" id="missing-order-ids">—</strong>
+                            </div>
+                            <div class="bar">
+                                <div class="bar-fill" id="missing-order-ids-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="quality-row">
+                                <span>Missing amounts</span>
+                                <strong class="quality-value" id="missing-amounts">—</strong>
+                            </div>
+                            <div class="bar">
+                                <div class="bar-fill" id="missing-amounts-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="quality-row">
+                                <span>Duplicate order IDs</span>
+                                <strong class="quality-value" id="duplicate-order-ids">—</strong>
+                            </div>
+                            <div class="bar">
+                                <div class="bar-fill" id="duplicate-order-ids-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="quality-row">
+                                <span>Negative amounts</span>
+                                <strong class="quality-value" id="negative-amounts">—</strong>
+                            </div>
+                            <div class="bar">
+                                <div class="bar-fill" id="negative-amounts-bar" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <section class="panel table-panel">
+                <div class="section-heading">
+                    <h2>Provider anomaly analysis</h2>
+                    <span class="muted">Grouped transaction statistics</span>
+                </div>
+
+                <p class="panel-description">
+                    Provider averages are compared against a baseline. An anomaly requires
+                    further validation and does not independently establish the cause.
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Average amount</th>
+                                <th>Ratio to baseline</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="provider-table-body">
+                            <tr>
+                                <td colspan="4" class="muted">Loading provider data…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="panel table-panel" id="investigation-history-panel">
+                <div class="section-heading">
+                    <h2>Investigation history</h2>
+                    <button class="primary-button" id="refresh-history-button" type="button">
+                        Refresh history
+                    </button>
+                </div>
+
+                <p class="panel-description">
+                    Previously saved investigations from the demo backend.
+                </p>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Investigation ID</th>
+                                <th>Asset</th>
+                                <th>Field</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="5" class="muted">Loading investigation history…</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="history-message" role="status" aria-live="polite">
+                    Loading investigation history…
+                </div>
+            </section>
+
+            <footer>
+                DataGuard AI · Educational demo · Validate findings against source systems
+                before taking action.
+            </footer>
+        </main>
+    </div>
 
 <script>
     const API_BASE_URL = "http://127.0.0.1:8001";
 
-    const message = document.getElementById("message");
     const investigateButton = document.getElementById("investigate-button");
     const exportReportButton = document.getElementById("export-report-button");
-    const historyMessage = document.getElementById("history-message");
-    const historyTableBody = document.getElementById("history-table-body");
     const refreshHistoryButton = document.getElementById("refresh-history-button");
 
     let latestInvestigationReport = null;
-
-    function showMessage(text) {
-        message.textContent = text;
-        message.style.display = "block";
-    }
 
     function formatNumber(value) {
         if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -681,161 +676,192 @@
         }).format(value);
     }
 
-    // Load saved investigation records from the backend.
-    async function loadInvestigationHistory() {
-        historyMessage.textContent = "Loading investigation history...";
-        historyTableBody.replaceChildren();
+    function showMessage(message) {
+        const element = document.getElementById("message");
+        element.textContent = message;
+        element.style.display = "block";
+    }
 
-        try {
-            const response = await fetch(`${API_BASE_URL}/investigation/history?limit=20`);
+    function showHistoryMessage(message) {
+        document.getElementById("history-message").textContent = message;
+    }
 
-            if (!response.ok) {
-                throw new Error("Unable to load investigation history.");
+    function setQualityScore(report) {
+        const records = report.records_checked ?? 0;
+        document.getElementById("records-checked").textContent =
+            formatNumber(records);
+
+        const checks = [
+            {
+                value: report.missing_order_ids,
+                valueId: "missing-order-ids",
+                barId: "missing-order-ids-bar"
+            },
+            {
+                value: report.missing_amounts,
+                valueId: "missing-amounts",
+                barId: "missing-amounts-bar"
+            },
+            {
+                value: report.duplicate_order_ids,
+                valueId: "duplicate-order-ids",
+                barId: "duplicate-order-ids-bar"
+            },
+            {
+                value: report.negative_amounts,
+                valueId: "negative-amounts",
+                barId: "negative-amounts-bar"
+            }
+        ];
+
+        let passed = 0;
+
+        for (const check of checks) {
+            const value = Number(check.value ?? 0);
+            const isHealthy = value === 0;
+
+            if (isHealthy) {
+                passed += 1;
             }
 
-            const data = await response.json();
-            const investigations = Array.isArray(data.investigations)
-                ? data.investigations
-                : [];
+            document.getElementById(check.valueId).textContent =
+                formatNumber(value);
 
-            historyMessage.textContent =
-                `${investigations.length} saved investigation(s) found.`;
+            const bar = document.getElementById(check.barId);
+            bar.style.width = records > 0
+                ? `${Math.min(100, (value / records) * 100)}%`
+                : "0%";
+
+            bar.classList.toggle("warning", !isHealthy);
+
+            document.getElementById(check.valueId)
+                .classList.toggle("warning", !isHealthy);
+        }
+
+        document.getElementById("quality-score").textContent =
+            `${passed}/${checks.length}`;
+    }
+
+    async function loadInvestigationHistory() {
+        const rows = document.getElementById("history-table-body");
+        refreshHistoryButton.disabled = true;
+        refreshHistoryButton.textContent = "Refreshing…";
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/investigation/history`);
+
+            if (response.status === 404) {
+                rows.innerHTML = "";
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.className = "muted";
+                cell.textContent = "Investigation history endpoint is not available in this backend version.";
+                row.appendChild(cell);
+                rows.appendChild(row);
+                showHistoryMessage("History endpoint unavailable. Other dashboard features can still work.");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Could not load investigation history.");
+            }
+
+            const result = await response.json();
+            const investigations = Array.isArray(result)
+                ? result
+                : (result.investigations ?? result.items ?? []);
+
+            rows.innerHTML = "";
 
             if (investigations.length === 0) {
                 const row = document.createElement("tr");
                 const cell = document.createElement("td");
-
                 cell.colSpan = 5;
-                cell.textContent = "No investigations saved yet.";
-
+                cell.className = "muted";
+                cell.textContent = "No saved investigations yet. Run an investigation to begin.";
                 row.appendChild(cell);
-                historyTableBody.appendChild(row);
+                rows.appendChild(row);
+                showHistoryMessage("No investigations have been saved yet.");
                 return;
             }
 
-            for (const investigation of investigations) {
+            for (const item of investigations) {
                 const row = document.createElement("tr");
 
-                const values = [
-                    investigation.created_at
-                        ? new Date(investigation.created_at).toLocaleString()
-                        : "Unknown",
-                    investigation.asset ?? "Unknown",
-                    investigation.field ?? "Unknown",
-                    String(
-                        Array.isArray(investigation.evidence)
-                            ? investigation.evidence.length
-                            : 0
-                    ),
-                    investigation.investigation_id ?? "Unknown"
-                ];
+                const idCell = document.createElement("td");
+                idCell.textContent =
+                    item.investigation_id ?? item.id ?? "—";
 
-                for (const value of values) {
-                    const cell = document.createElement("td");
-                    cell.textContent = value;
-                    row.appendChild(cell);
+                const assetCell = document.createElement("td");
+                assetCell.textContent = item.asset ?? "—";
+
+                const fieldCell = document.createElement("td");
+                fieldCell.textContent = item.field ?? "—";
+
+                const statusCell = document.createElement("td");
+                statusCell.textContent =
+                    item.status ?? "INVESTIGATION_REQUIRED";
+
+                const createdCell = document.createElement("td");
+                const createdAt =
+                    item.created_at ?? item.generated_at ?? item.timestamp;
+
+                if (createdAt) {
+                    const parsed = new Date(createdAt);
+                    createdCell.textContent = Number.isNaN(parsed.getTime())
+                        ? String(createdAt)
+                        : parsed.toLocaleString();
+                } else {
+                    createdCell.textContent = "—";
                 }
 
-                historyTableBody.appendChild(row);
-            }
-        } catch (error) {
-            console.error("Investigation history error:", error);
+                row.append(
+                    idCell,
+                    assetCell,
+                    fieldCell,
+                    statusCell,
+                    createdCell
+                );
 
-            historyMessage.textContent =
-                "Could not load investigation history. Check that the API is running.";
+                rows.appendChild(row);
+            }
+
+            showHistoryMessage(
+                `${investigations.length} saved investigation(s) loaded.`
+            );
+        } catch (error) {
+            rows.innerHTML = "";
 
             const row = document.createElement("tr");
             const cell = document.createElement("td");
-
             cell.colSpan = 5;
-            cell.textContent = "History is currently unavailable.";
-
+            cell.className = "muted";
+            cell.textContent = error.message;
             row.appendChild(cell);
-            historyTableBody.appendChild(row);
+            rows.appendChild(row);
+
+            showHistoryMessage(
+                `Could not load history: ${error.message}`
+            );
+        } finally {
+            refreshHistoryButton.disabled = false;
+            refreshHistoryButton.textContent = "Refresh history";
         }
     }
 
-    // Calculate a dashboard score from the four checks returned by the API.
-    // This is a frontend-derived indicator, not an official backend score.
-    function setQualityScore(report) {
-        const checks = [
-            report.missing_order_ids,
-            report.missing_amounts,
-            report.duplicate_order_ids,
-            report.negative_amounts
-        ];
-
-        const validChecks = checks.filter(Array.isArray);
-
-        if (validChecks.length !== checks.length) {
-            document.getElementById("quality-score").textContent = "Unavailable";
-            document.getElementById("quality-detail").textContent = "Check report";
-            document.getElementById("quality-bar").style.width = "0%";
-            return;
-        }
-
-        const passedChecks = validChecks.filter(
-            items => items.length === 0
-        ).length;
-
-        const score = Math.round((passedChecks / checks.length) * 100);
-
-        const issueCount = validChecks.reduce(
-            (total, items) => total + items.length,
-            0
-        );
-
-        document.getElementById("quality-score").textContent = `${score}%`;
-
-        document.getElementById("quality-detail").textContent =
-            `${passedChecks}/${checks.length} checks passed`;
-
-        document.getElementById("quality-bar").style.width = `${score}%`;
-
-        const qualityFoot = document.querySelector(
-            ".cards .card:nth-child(2) .card-foot"
-        );
-
-        if (qualityFoot) {
-            qualityFoot.textContent =
-                `${report.records_checked ?? "—"} records checked · ` +
-                `${issueCount} reported issues`;
-        }
-
-        const qualityBar = document.getElementById("quality-bar");
-        qualityBar.classList.toggle("warning", score < 100);
-
-        const qualityDetail = document.getElementById("quality-detail");
-        qualityDetail.classList.toggle("warning", score < 100);
-    }
-
-    // Render providers and calculate each ratio against the API baseline.
     function renderProviders(report) {
-        const rows = document.getElementById("provider-rows");
-        rows.replaceChildren();
+        const rows = document.getElementById("provider-table-body");
+        rows.innerHTML = "";
 
-        const providers = Array.isArray(report.providers)
-            ? report.providers
-            : [];
-
-        const anomalies = Array.isArray(report.anomalies)
-            ? report.anomalies
-            : [];
-
+        const providers = report.providers ?? [];
+        const anomalies = report.anomalies ?? [];
         const baseline = report.baseline_average_amount;
 
-        document.getElementById("flagged-count").textContent =
-            anomalies.length;
+        document.getElementById("flagged-providers").textContent =
+            formatNumber(anomalies.length);
 
-        document.getElementById("anomaly-detail").textContent =
-            anomalies.length
-                ? `${anomalies.length} flagged`
-                : "None flagged";
-
-        document.getElementById("anomaly-bar").style.width =
-            anomalies.length ? "100%" : "0%";
-
-        if (!providers.length) {
+        if (providers.length === 0) {
             const row = document.createElement("tr");
             const cell = document.createElement("td");
 
@@ -1034,32 +1060,76 @@
         }
     });
 
-    exportReportButton.addEventListener("click", () => {
-        if (!latestInvestigationReport) {
-            showMessage("Run an investigation before exporting a report.");
-            return;
+    exportReportButton.addEventListener("click", async () => {
+        const originalLabel = exportReportButton.textContent;
+        exportReportButton.disabled = true;
+        exportReportButton.textContent = "Preparing report…";
+
+        try {
+            let report = latestInvestigationReport;
+
+            // After a page refresh, the in-memory report is empty. Fetch a fresh
+            // dashboard summary so export still works without rerunning an investigation.
+            if (!report) {
+                const response = await fetch(`${API_BASE_URL}/investigation/summary`);
+
+                if (!response.ok) {
+                    throw new Error(
+                        "The API could not prepare a report. Check that FastAPI is running."
+                    );
+                }
+
+                const summary = await response.json();
+
+                report = {
+                    report_title: "DataGuard AI Investigation Report",
+                    generated_at: new Date().toISOString(),
+                    project: "DataGuard AI",
+                    report_type: "dashboard_snapshot",
+                    asset: summary.asset ?? "raw_orders",
+                    field: "amount",
+                    incident_finding: summary.incident_finding ?? null,
+                    data_quality: summary.data_quality ?? null,
+                    provider_anomalies: summary.provider_anomalies ?? null,
+                    next_step: summary.next_step ?? (
+                        "Review the findings and verify evidence before confirming a root cause."
+                    ),
+                    note: (
+                        "Synthetic educational demo report. An anomaly is a signal to investigate, " +
+                        "not independent proof of the root cause."
+                    )
+                };
+            }
+
+            const reportBlob = new Blob(
+                [JSON.stringify(report, null, 2)],
+                { type: "application/json;charset=utf-8" }
+            );
+
+            const downloadUrl = URL.createObjectURL(reportBlob);
+            const downloadLink = document.createElement("a");
+
+            downloadLink.href = downloadUrl;
+            downloadLink.download = "dataguard-investigation-report.json";
+            downloadLink.style.display = "none";
+
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            downloadLink.remove();
+
+            // Give the browser time to begin the download before releasing the Blob URL.
+            window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+
+            showMessage(
+                "Investigation report export started. Check your Downloads folder."
+            );
+        } catch (error) {
+            console.error("Export investigation report failed:", error);
+            showMessage(`Could not export the report: ${error.message}`);
+        } finally {
+            exportReportButton.disabled = false;
+            exportReportButton.textContent = originalLabel;
         }
-
-        const reportBlob = new Blob(
-            [JSON.stringify(latestInvestigationReport, null, 2)],
-            { type: "application/json" }
-        );
-
-        const downloadUrl = URL.createObjectURL(reportBlob);
-        const downloadLink = document.createElement("a");
-
-        downloadLink.href = downloadUrl;
-        downloadLink.download = "dataguard-investigation-report.json";
-
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        downloadLink.remove();
-
-        setTimeout(() => {
-            URL.revokeObjectURL(downloadUrl);
-        }, 1000);
-
-        showMessage("Investigation report downloaded successfully.");
     });
 
     refreshHistoryButton.addEventListener(

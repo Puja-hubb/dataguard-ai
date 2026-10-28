@@ -11,3 +11,15 @@ data/*.duckdb
 *.egg-info/
 build/
 dist/
+# Python cache and test reports
+__pycache__/
+*.py[cod]
+.pytest_cache/
+htmlcov/
+
+# Local environment files
+.env.*
+!.env.example
+
+# DuckDB write-ahead logs
+data/*.duckdb.wal
