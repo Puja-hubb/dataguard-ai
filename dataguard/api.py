@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field, field_validator
 from .evidence import build_demo_evidence, confirm_root_cause
 from .logging_config import configure_logging
 from .quality import profile_database_orders, profile_provider_amounts
+from .postgres import detect_postgres_anomalies
 from .warehouse import (
     get_investigation_history,
     revenue_summary,
@@ -401,4 +402,27 @@ def investigation_summary(
         raise HTTPException(
             status_code=503,
             detail="Investigation summary failed. Please try again later.",
+        )
+@app.get("/postgres/anomalies")
+def postgres_anomalies():
+    """Detect anomalies using real PostgreSQL transaction data."""
+
+    try:
+        result = detect_postgres_anomalies()
+
+        return {
+            "status": "success",
+            "data_source": "postgresql",
+            "asset": "orders",
+            "anomaly_detection": result,
+        }
+
+    except Exception:
+        logger.exception("PostgreSQL anomaly detection failed")
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                "PostgreSQL anomaly detection failed. "
+                "Check database configuration and availability."
+            ),
         )

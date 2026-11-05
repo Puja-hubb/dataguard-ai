@@ -614,6 +614,54 @@
                 </div>
             </section>
 
+            <section class="panel table-panel" id="postgres-monitoring-panel">
+                <div class="section-heading">
+                    <h2>PostgreSQL monitoring</h2>
+                    <span class="muted" id="postgres-status">Checking connection...</span>
+                </div>
+
+                <p class="panel-description" id="postgres-status-note">
+                    Monitoring transaction data from the connected PostgreSQL database.
+                </p>
+
+                <div class="incident-metrics">
+                    <div class="metric-card">
+                        <span class="muted">Providers monitored</span>
+                        <strong class="metric-value" id="postgres-provider-count">—</strong>
+                    </div>
+
+                    <div class="metric-card">
+                        <span class="muted">Anomalies detected</span>
+                        <strong class="metric-value" id="postgres-anomaly-count">—</strong>
+                    </div>
+                </div>
+
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>Average amount</th>
+                                <th>Reference provider</th>
+                                <th>Ratio</th>
+                                <th>Severity</th>
+                            </tr>
+                        </thead>
+                        <tbody id="postgres-anomaly-table">
+                            <tr>
+                                <td colspan="5" class="muted">
+                                    Loading PostgreSQL monitoring data...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="postgres-message" role="status" aria-live="polite">
+                    Connecting to PostgreSQL...
+                </div>
+            </section>
+
             <section class="panel table-panel" id="investigation-history-panel">
                 <div class="section-heading">
                     <h2>Investigation history</h2>
@@ -658,7 +706,7 @@
     </div>
 
 <script>
-    const API_BASE_URL = "https://dataguard-ai-u2px.onrender.com";
+    const API_BASE_URL = window.location.origin;
 
     const investigateButton = document.getElementById("investigate-button");
     const exportReportButton = document.getElementById("export-report-button");
@@ -929,6 +977,100 @@
         }
     }
 
+    async function loadPostgresMonitoring() {
+        const statusElement = document.getElementById("postgres-status");
+        const statusNote = document.getElementById("postgres-status-note");
+        const providerCount = document.getElementById("postgres-provider-count");
+        const anomalyCount = document.getElementById("postgres-anomaly-count");
+        const tableBody = document.getElementById("postgres-anomaly-table");
+        const messageElement = document.getElementById("postgres-message");
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/postgres/anomalies`);
+
+            if (!response.ok) {
+                throw new Error(`API returned HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            const detection = result.anomaly_detection ?? {};
+            const findings = Array.isArray(detection.findings)
+                ? detection.findings
+                : [];
+
+            const providerNames = new Set([
+                detection.reference_provider,
+                ...findings.map(item => item.payment_provider)
+            ].filter(Boolean));
+
+            statusElement.textContent = "Connected";
+            statusNote.textContent =
+                "Live transaction analysis from PostgreSQL.";
+
+            providerCount.textContent = formatNumber(providerNames.size);
+            anomalyCount.textContent = formatNumber(findings.length);
+
+            tableBody.replaceChildren();
+
+            if (findings.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+
+                cell.colSpan = 5;
+                cell.className = "muted";
+                cell.textContent = "No anomalies detected.";
+
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+            } else {
+                findings.forEach(finding => {
+                    const row = document.createElement("tr");
+
+                    const values = [
+                        finding.payment_provider,
+                        `₹${formatNumber(finding.average_amount)}`,
+                        finding.reference_provider,
+                        `${formatNumber(finding.ratio)}×`,
+                        finding.severity
+                    ];
+
+                    values.forEach(value => {
+                        const cell = document.createElement("td");
+                        cell.textContent = value ?? "—";
+                        row.appendChild(cell);
+                    });
+
+                    tableBody.appendChild(row);
+                });
+            }
+
+            messageElement.textContent = findings.length
+                ? "Unusual provider averages detected. Validate findings against source transactions."
+                : "No unusual provider averages detected.";
+
+        } catch (error) {
+            statusElement.textContent = "Unavailable";
+            statusNote.textContent = "Could not connect to PostgreSQL.";
+
+            providerCount.textContent = "—";
+            anomalyCount.textContent = "—";
+
+            tableBody.replaceChildren();
+
+            const row = document.createElement("tr");
+            const cell = document.createElement("td");
+
+            cell.colSpan = 5;
+            cell.className = "muted";
+            cell.textContent = "PostgreSQL monitoring data unavailable.";
+
+            row.appendChild(cell);
+            tableBody.appendChild(row);
+
+            messageElement.textContent = error.message;
+        }
+    }
+
     async function loadDashboard() {
         try {
             const response = await fetch(`${API_BASE_URL}/health`);
@@ -941,6 +1083,7 @@
 
             document.getElementById("api-status-note").textContent =
                 "FastAPI responded successfully";
+            await loadPostgresMonitoring();
         } catch {
             document.getElementById("api-status").textContent = "Offline";
 

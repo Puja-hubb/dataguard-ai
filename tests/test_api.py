@@ -617,3 +617,79 @@ def test_request_middleware_logs_and_reraises_exception():
             raise AssertionError("Expected RuntimeError was not raised")
 
     asyncio.run(run_test())
+def test_postgres_anomalies_endpoint_returns_success(monkeypatch):
+    from dataguard import api
+
+    monkeypatch.setattr(
+        api,
+        "detect_postgres_anomalies",
+        lambda: {
+            "status": "anomaly_detected",
+            "reference_provider": "cloudpay_v1",
+            "findings": [
+                {
+                    "payment_provider": "cloudpay_v2",
+                    "average_amount": 51000.0,
+                    "reference_provider": "cloudpay_v1",
+                    "reference_average": 575.0,
+                    "ratio": 88.7,
+                    "severity": "high",
+                    "message": "Average transaction amount is unusually high.",
+                }
+            ],
+        },
+    )
+
+    response = client.get("/postgres/anomalies")
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["status"] == "success"
+    assert data["data_source"] == "postgresql"
+    assert data["asset"] == "orders"
+    assert data["anomaly_detection"]["status"] == "anomaly_detected"
+    assert data["anomaly_detection"]["findings"][0]["payment_provider"] == "cloudpay_v2"
+
+
+def test_postgres_anomalies_endpoint_returns_normal_result(monkeypatch):
+    from dataguard import api
+
+    monkeypatch.setattr(
+        api,
+        "detect_postgres_anomalies",
+        lambda: {
+            "status": "normal",
+            "reference_provider": "cloudpay_v1",
+            "findings": [],
+        },
+    )
+
+    response = client.get("/postgres/anomalies")
+
+    assert response.status_code == 200
+    assert response.json()["anomaly_detection"]["status"] == "normal"
+    assert response.json()["anomaly_detection"]["findings"] == []
+
+
+def test_postgres_anomalies_endpoint_returns_503_when_database_fails(
+    monkeypatch,
+):
+    from dataguard import api
+
+    def fail_detection():
+        raise RuntimeError("Database connection failed")
+
+    monkeypatch.setattr(
+        api,
+        "detect_postgres_anomalies",
+        fail_detection,
+    )
+
+    response = client.get("/postgres/anomalies")
+
+    assert response.status_code == 503
+    assert response.json()["detail"] == (
+        "PostgreSQL anomaly detection failed. "
+        "Check database configuration and availability."
+    )
